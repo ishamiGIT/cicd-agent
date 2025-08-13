@@ -23,14 +23,19 @@ docker run -p 8080:8080 mcp-server
 ### Using Your Local Google Cloud Credentials
 
 To allow the server to use your local Google Cloud Application Default Credentials (ADC), you need to mount your local `gcloud` configuration directory into the container. This will allow the server to create GCP projects on your behalf.
+```bash
+gcloud auth application-default login
+```
+
+
+### Using as a docker image
 
 ```bash
 docker run -p 8080:8080 -v ~/.config/gcloud:/root/.config/gcloud mcp-server
 ```
+**Security Warning:** By mounting this directory, you are giving the container access to your `gcloud` credentials. You should only do this with Docker images that you trust.
 
 **Note for Windows users:** The path to the `gcloud` configuration directory is `%APPDATA%\gcloud`.
-
-**Security Warning:** By mounting this directory, you are giving the container access to your `gcloud` credentials. You should only do this with Docker images that you trust.
 
 ## Capabilities
 

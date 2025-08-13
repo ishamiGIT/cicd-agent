@@ -7,6 +7,7 @@ from artifact_registry import router as artifact_registry_router # New import
 from iam import router as iam_router # New import
 from container_analysis import router as container_analysis_router # New import
 from cloud_run import router as cloud_run_router # New import
+from dev_connect import router as dev_connect_router # New import
 
 app = FastAPI()
 
@@ -14,6 +15,7 @@ app.include_router(artifact_registry_router) # Include the new router
 app.include_router(iam_router) # Include the new router
 app.include_router(container_analysis_router) # Include the new router
 app.include_router(cloud_run_router) # Include the new router
+app.include_router(dev_connect_router) # Include the new router
 
 @app.get("/mcp/capabilities")
 def get_mcp_capabilities():
