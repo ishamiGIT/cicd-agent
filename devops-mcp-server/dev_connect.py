@@ -1,9 +1,11 @@
 from fastapi import APIRouter, HTTPException
+import logging
 import google.auth
 from googleapiclient import discovery
 from googleapiclient.errors import HttpError
 from mcp import mcp_capability
 
+logger = logging.Logger(__file__);
 router = APIRouter()
 
 @router.post("/developerConnect/createConnection/")
@@ -60,6 +62,7 @@ def create_developer_connect_connection(project_id: str, region: str, connection
             return {"message": f"Successfully created Developer Connect connection: {response.name}"}
         
         else:
+            logger.exception(e)
             raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/developerConnect/createConnection/")
@@ -122,12 +125,13 @@ def create_git_repository_link(project_id: str, region: str, connection_id: str,
             response = create_request.execute()
             return {"message": f"Successfully created Developer Connect repository link: {response.name}"}        
         else:
+            logger.exception(e)
             raise HTTPException(status_code=500, detail=str(e))
 
     pass
 
 
-@router.post("/developerConnect/listConnections/")
+@router.get("/developerConnect/listConnections/{project_id}/{region}")
 @mcp_capability(
     name="developerConnect/listConnections/",
     description="List Developer Connect connections.",
@@ -155,12 +159,48 @@ def list_connections(project_id, region):
         response = request.execute()
         
         connection_list=[]
+        newline_char = "\n"
         for connection in response.get('connections', []):
-            connection_list.append(f"{connection['name']}")
+            connection_list.append(f"{connection['name']}{newline_char}")
 
-        return {"message": f"Developer Connect connections: {' '.join(connection_list)}"}        
+        return {"message": f"Developer Connect connections: {newline_char}{''.join(connection_list)}"}
 
     except Exception as e:
+        logger.exception(e)
         raise HTTPException(status_code=500, detail=str(e))
 
+    pass
+
+@router.get("/developerConnect/connection/{project_id}/{region}/{connection_id}")
+@mcp_capability(
+    name="developerConnect/connection/",
+    description="List Developer Connect connections.",
+    parameters=[
+        {
+            "name": "project_id",
+            "type": "string",
+            "description": "The ID of the GCP project.",
+        },
+        {
+            "name": "region",
+            "type": "string",
+            "description": "The GCP region/location (e.g., 'us-east1').",
+        },
+    ],
+)
+def get_connection(project_id, region,connection_id):
+    """Lists Developer Connect resources in a GCP project."""
+    try:
+        credentials, project_id = google.auth.default()
+        service = discovery.build('developerconnect', 'v1', credentials=credentials)
+
+        name = f'projects/{project_id}/locations/{region}/connections/{connection_id}'
+        request = service.projects().locations().connections().get(name=name)
+        response = request.execute()
+        newline_char = "\n"
+        return {"message": response}
+
+    except Exception as e:
+        logger.exception(e)
+        raise HTTPException(status_code=500, detail=str(e))
     pass

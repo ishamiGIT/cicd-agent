@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 import google.auth
+import logging
 from googleapiclient.discovery import build
 from mcp import mcp_capability, mcp_capabilities_registry
 
@@ -9,6 +10,7 @@ from container_analysis import router as container_analysis_router # New import
 from cloud_run import router as cloud_run_router # New import
 from dev_connect import router as dev_connect_router # New import
 
+logging.basicConfig(level=logging.DEBUG)
 app = FastAPI()
 
 app.include_router(artifact_registry_router) # Include the new router
