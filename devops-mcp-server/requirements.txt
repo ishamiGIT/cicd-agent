@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+google-api-python-client
+google-cloud-artifact-registry
+google-cloud-build
+google-cloud-run
+google-cloud-developerconnect
+google-cloud-containeranalysis
+google-cloud-run-v2
