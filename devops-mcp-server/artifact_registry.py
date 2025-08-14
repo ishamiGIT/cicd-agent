@@ -1,40 +1,20 @@
-from fastapi import APIRouter, HTTPException
+from app import mcp
 import google.auth
-from mcp import mcp_capability
 from google.cloud import artifactregistry_v1
 
-router = APIRouter()
 
-@router.post("/artifactRegistry/createRepository/")
-@mcp_capability(
-    name="artifactRegistry/createRepository/",
-    description="Creates a new Artifact Registry repository.",
-    parameters=[
-        {
-            "name": "project_id",
-            "type": "string",
-            "description": "The ID of the GCP project.",
-        },
-        {
-            "name": "location",
-            "type": "string",
-            "description": "The GCP location (e.g., 'us-east1').",
-        },
-        {
-            "name": "repository_id",
-            "type": "string",
-            "description": "The ID of the new Artifact Registry repository.",
-        },
-        {
-            "name": "format",
-            "type": "string",
-            "description": "The format of the repository (e.g., 'DOCKER', 'MAVEN').",
-        },
-    ],
-)
+@mcp.tool
 def create_artifact_registry_repository(project_id: str, location: str, repository_id: str, format: str):
-    """
-    Creates a new Artifact Registry repository.
+    """Creates a new Artifact Registry repository.
+
+    Args:
+        project_id: The ID of the Google Cloud project.
+        location: The location of the repository.
+        repository_id: The ID of the repository to create.
+        format: The format of the repository. One of DOCKER, MAVEN, NPM, PYPI
+    
+    Returns:
+        A dictionary containing a success message or an error message.
     """
     try:
         credentials, project = google.auth.default()
@@ -49,7 +29,7 @@ def create_artifact_registry_repository(project_id: str, location: str, reposito
             parent=parent, repository=repository, repository_id=repository_id
         )
 
-        return {"message": f"Successfully created Artifact Registry repository: {response.name}"}
+        return {"message": f"Successfully created Artifact Registry repository: {response}"}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return {"error": str(e)}

@@ -14,12 +14,6 @@ docker build -t mcp-server .
 
 ### 2. Run the Docker Container
 
-Once the image is built, you can run it as a container. The server will be available on port 8080.
-
-```bash
-docker run -p 8080:8080 mcp-server
-```
-
 ### Using Your Local Google Cloud Credentials
 
 To allow the server to use your local Google Cloud Application Default Credentials (ADC), you need to mount your local `gcloud` configuration directory into the container. This will allow the server to create GCP projects on your behalf.
@@ -27,11 +21,12 @@ To allow the server to use your local Google Cloud Application Default Credentia
 gcloud auth application-default login
 ```
 
+### Run
 
-### Using as a docker image
+Once the image is built, you can run it as a container. The server will be available on port 8000.
 
 ```bash
-docker run -p 8080:8080 -v ~/.config/gcloud:/root/.config/gcloud mcp-server
+docker run -v ~/.config/gcloud:/root/.config/gcloud -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json -p 8000:8000 mcp-server
 ```
 **Security Warning:** By mounting this directory, you are giving the container access to your `gcloud` credentials. You should only do this with Docker images that you trust.
 

@@ -1,5 +1,4 @@
-fastapi
-uvicorn
+fastmcp
 google-api-python-client
 google-auth
 google-cloud-artifact-registry
@@ -7,4 +6,4 @@ google-cloud-build
 google-cloud-run
 google-cloud-developerconnect
 google-cloud-containeranalysis
-#google-cloud-run-v2
+google-cloud-run
