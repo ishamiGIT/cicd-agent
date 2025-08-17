@@ -28,8 +28,12 @@ router = APIRouter()
     ],
 )
 def create_service_account(project_id: str, display_name: str, account_id: str):
-    """
-    Creates a new Google Cloud Platform service account.
+    """Creates a new Google Cloud Platform service account.
+
+    Args:
+        project_id: The ID of the GCP project.
+        display_name: The display name for the service account.
+        account_id: The ID for the service account (lowercase, alphanumeric, hyphen allowed).
     """
     try:
         credentials, project = google.auth.default(
@@ -84,8 +88,13 @@ def create_service_account(project_id: str, display_name: str, account_id: str):
     ],
 )
 def add_iam_role_binding(resource_type: str, resource_id: str, role: str, member: str):
-    """
-    Adds an IAM role binding to a Google Cloud Platform resource.
+    """Adds an IAM role binding to a Google Cloud Platform resource.
+
+    Args:
+        resource_type: The type of resource (e.g., 'projects', 'folders', 'organizations').
+        resource_id: The ID of the resource.
+        role: The role to bind (e.g., 'roles/editor', 'roles/viewer').
+        member: The member to bind the role to (e.g., 'user:example@example.com', 'serviceAccount:my-service-account@project-id.iam.gserviceaccount.com').
     """
     try:
         credentials, project = google.auth.default(

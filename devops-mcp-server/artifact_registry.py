@@ -28,8 +28,9 @@ def create_artifact_registry_repository(project_id: str, location: str, reposito
         response = client.create_repository(
             parent=parent, repository=repository, repository_id=repository_id
         )
+        result = response.result()
 
-        return {"message": f"Successfully created Artifact Registry repository: {response}"}
+        return {"message": f"Successfully created Artifact Registry repository: {result}"}
 
     except Exception as e:
         return {"error": str(e)}

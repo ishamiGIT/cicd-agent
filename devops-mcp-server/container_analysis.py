@@ -23,8 +23,11 @@ router = APIRouter()
     ],
 )
 def list_vulnerabilities(project_id: str, resource_url: str):
-    """
-    Lists vulnerabilities for a given image resource URL using Container Analysis.
+    """Lists vulnerabilities for a given image resource URL using Container Analysis.
+
+    Args:
+        project_id: The ID of the GCP project where the image resides.
+        resource_url: The full resource URL of the image (e.g., 'https://gcr.io/project-id/image-name@sha256:digest').
     """
     try:
         credentials, project = google.auth.default(

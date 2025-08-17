@@ -5,7 +5,11 @@ mcp = FastMCP(name="test-mcp-server")
 
 @mcp.resource("resource://config")
 def get_config() -> dict:
-    """Provides the application's configuration."""
+    """Provides the application's configuration.
+
+    Returns:
+        A dictionary containing the application's configuration.
+    """
     return {"version": "1.0", "author": "MyTeam"}
 
 

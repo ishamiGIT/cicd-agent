@@ -1,66 +1,42 @@
-from fastapi import APIRouter, HTTPException
 import google.auth
-from mcp import mcp_capability
-from google.cloud.devtools import cloudbuild_v1
+from googleapiclient import discovery
+from app import mcp
 
-router = APIRouter()
 
-@router.post("/cloudBuild/createTrigger/")
-@mcp_capability(
-    name="cloudBuild/createTrigger/",
-    description="Creates a new Cloud Build trigger.",
-    parameters=[
-        {
-            "name": "project_id",
-            "type": "string",
-            "description": "The ID of the GCP project.",
-        },
-        {
-            "name": "trigger_id",
-            "type": "string",
-            "description": "The ID of the new Cloud Build trigger.",
-        },
-        {
-            "name": "developer_connect_project_id",
-            "type": "string",
-            "description": "The project ID of the Developer Connect Connection.",
-        },
-        {
-            "name": "developer_connect_location",
-            "type": "string",
-            "description": "The location of the Developer Connect Connection.",
-        },
-        {
-            "name": "developer_connect_application_id",
-            "type": "string",
-            "description": "The ID of the Developer Connect Connection.",
-        },
-        {
-            "name": "build_config_path",
-            "type": "string",
-            "description": "The path to the build config file in the repository (e.g., 'cloudbuild.yaml').",
-        },
-    ],
-)
-def create_cloud_build_trigger(project_id: str, trigger_id: str,developer_connect_project_id: str, developer_connect_location: str, developer_connect_application_id: str, build_config_path: str):
-    """
-    Creates a new Cloud Build trigger.
+@mcp.tool
+def create_cloud_build_trigger(project_id: str, location_id: str, trigger_id: str, developer_connect_git_repository_link: str):
+    """Creates a new Cloud Build trigger.
+
+    Args:
+        project_id: The ID of the Google Cloud project.
+        location_id: The ID of the location for the trigger.
+        trigger_id: The ID of the trigger to create.
+        developer_connect_git_repository_link: The resource name of the Developer Connect GitRepositoryLink.
+        build_config_path: The path to the build configuration file.
     """
     try:
-        credentials, project = google.auth.default()
-        client = cloudbuild_v1.CloudBuildClient(credentials=credentials)
+        credentials, project = google.auth.default(
+            scopes=["https://www.googleapis.com/auth/cloud-platform"]
+        )
+        service = discovery.build('cloudbuild', 'v1', credentials=credentials)
 
-        parent = f"projects/{project_id}"
+        parent = f"projects/{project_id}/locations/{location_id}"
         trigger = {
-            "developer_connect_config": {
-                "git_repository_link": f"projects/{developer_connect_project_id}/locations/{developer_connect_location}/applications/{developer_connect_application_id}",
-                "build_config_path": build_config_path,
+            "name": trigger_id,
+            "developer_connect_event_config": {
+                "git_repository_link": developer_connect_git_repository_link,
+                "push": {
+                    "branch": "^main$",
+                },
             },
+            "autodetect": True,
+            "service_account" : "projects/test-ca-123/serviceAccounts/827066257232-compute@developer.gserviceaccount.com",
         }
 
-        response = client.create_build_trigger(project_id=project_id, trigger=trigger)
+        request = service.projects().locations().triggers().create(parent=parent, body=trigger)
+        response = request.execute()
 
-        return {"message": f"Successfully created Cloud Build trigger: {response.name}"}
+        return {"message": f"Successfully created Cloud Build trigger: {response.get('name')}"}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return {"error": str(e)}

@@ -1,49 +1,22 @@
-from fastapi import APIRouter, HTTPException
+from app import mcp
 import google.auth
-from google.cloud import run_v2 # Changed from 'run' to 'run_v2' for the new function
-from mcp import mcp_capability
+from google.cloud import run_v2
 
-router = APIRouter()
 
-@router.post("/cloudRun/createService/")
-@mcp_capability(
-    name="cloudRun/createService/",
-    description="Creates a new Cloud Run service.",
-    parameters=[
-        {
-            "name": "project_id",
-            "type": "string",
-            "description": "The ID of the GCP project.",
-        },
-        {
-            "name": "location",
-            "type": "string",
-            "description": "The GCP location (e.g., 'us-east1').",
-        },
-        {
-            "name": "service_name",
-            "type": "string",
-            "description": "The name of the new Cloud Run service.",
-        },
-        {
-            "name": "image_url",
-            "type": "string",
-            "description": "The URL of the container image (e.g., 'gcr.io/cloudrun/hello').",
-        },
-        {
-            "name": "port",
-            "type": "integer",
-            "description": "The port that the container listens on.",
-        },
-    ],
-)
+@mcp.tool
 def create_cloud_run_service(project_id: str, location: str, service_name: str, image_url: str, port: int):
-    """
-    Creates a new Cloud Run service.
+    """Creates a new Cloud Run service.
+
+    Args:
+        project_id: The ID of the Google Cloud project.
+        location: The location of the service.
+        service_name: The name of the service to create.
+        image_url: The URL of the container image to deploy.
+        port: The port that the container listens on.
     """
     try:
         credentials, project = google.auth.default()
-        client = run_v2.ServicesClient(credentials=credentials) # Changed from 'run.ServicesClient' to 'run_v2.ServicesClient'
+        client = run_v2.ServicesClient(credentials=credentials)
 
         parent = f"projects/{project_id}/locations/{location}"
         service = {
@@ -61,51 +34,27 @@ def create_cloud_run_service(project_id: str, location: str, service_name: str, 
             }
         }
 
-        response = client.create_service(
+        operation = client.create_service(
             parent=parent, service=service, service_id=service_name
         )
+        response = operation.result()
 
-        return {"message": f"Successfully created Cloud Run service: {response.name}"}
+        return {"message": f"Successfully created Cloud Run service: {response}"}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return {"error": str(e)}
 
-@router.post("/cloudRun/createRevision/")
-@mcp_capability(
-    name="cloudRun/createRevision/",
-    description="Creates a new Cloud Run revision for a service with a new Docker image.",
-    parameters=[
-        {
-            "name": "project_id",
-            "type": "string",
-            "description": "The ID of the GCP project.",
-        },
-        {
-            "name": "location",
-            "type": "string",
-            "description": "The GCP location (e.g., 'us-central1').",
-        },
-        {
-            "name": "service_name",
-            "type": "string",
-            "description": "The name of the Cloud Run service.",
-        },
-        {
-            "name": "image_url",
-            "type": "string",
-            "description": "The URL of the new Docker image (e.g., 'gcr.io/project-id/image-name:tag').",
-        },
-        {
-            "name": "revision_name",
-            "type": "string",
-            "description": "The name of the new revision. If not provided, Cloud Run generates one.",
-            "optional": True
-        },
-    ],
-)
+
+@mcp.tool
 def create_cloud_run_revision(project_id: str, location: str, service_name: str, image_url: str, revision_name: str = None):
-    """
-    Creates a new Cloud Run revision for a service with a new Docker image.
+    """Creates a new Cloud Run revision for a service with a new Docker image.
+
+    Args:
+        project_id: The ID of the Google Cloud project.
+        location: The location of the service.
+        service_name: The name of the service to update.
+        image_url: The URL of the new container image to deploy.
+        revision_name: The name of the new revision. If not specified, a name will be generated automatically.
     """
     try:
         credentials, project = google.auth.default(
@@ -136,4 +85,4 @@ def create_cloud_run_revision(project_id: str, location: str, service_name: str,
         return {"message": f"Successfully created Cloud Run revision: {response.latest_ready_revision}"}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return {"error": str(e)}
