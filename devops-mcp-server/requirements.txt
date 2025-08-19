@@ -7,3 +7,5 @@ google-cloud-run
 google-cloud-developerconnect
 google-cloud-containeranalysis
 google-cloud-run
+pytest
+pylint

@@ -35,8 +35,30 @@ def create_cloud_build_trigger(project_id: str, location_id: str, trigger_id: st
 
         request = service.projects().locations().triggers().create(parent=parent, body=trigger)
         response = request.execute()
-
         return {"message": f"Successfully created Cloud Build trigger: {response.get('name')}"}
+
+    except Exception as e:
+        return {"error": str(e)}
+
+@mcp.tool
+def list_build_triggers(project_id: str, location: str):
+    """Lists all Cloud Build triggers in a given location.
+
+    Args:
+        project_id: The ID of the Google Cloud project.
+        location: The location of the triggers.
+    """
+    try:
+        credentials, project = google.auth.default(
+            scopes=["https://www.googleapis.com/auth/cloud-platform"]
+        )
+        service = discovery.build('cloudbuild', 'v1', credentials=credentials)
+
+        parent = f"projects/{project_id}/locations/{location}"
+        request = service.projects().locations().triggers().list(parent=parent)
+        response = request.execute()
+
+        return response.get("triggers", [])
 
     except Exception as e:
         return {"error": str(e)}
