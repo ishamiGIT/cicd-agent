@@ -1,0 +1,21 @@
+
+steps:
+  # Lint
+  - name: "gcr.io/cloud-builders/gcloud"
+    args: ["echo", "Linting..."]
+
+  # Test
+  - name: "gcr.io/cloud-builders/gcloud"
+    args: ["echo", "Testing..."]
+
+  # Build Container
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "us-central1-docker.pkg.dev/haroonc-exp/cicd-agent-images/cicd-agent:latest", "."]
+
+  # Push Container
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "us-central1-docker.pkg.dev/haroonc-exp/cicd-agent-images/cicd-agent:latest"]
+
+  # Create Cloud Deploy release
+  - name: "gcr.io/cloud-builders/gcloud"
+    args: ["deploy", "releases", "create", "release-${SHORT_SHA}", "--delivery-pipeline", "cicd-agent-delivery-pipeline", "--region", "us-central1", "--source", "."]
