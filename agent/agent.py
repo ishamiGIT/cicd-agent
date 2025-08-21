@@ -10,9 +10,7 @@ from google.adk.memory import InMemoryMemoryService
 from google.adk import Runner
 from google.adk.sessions import InMemorySessionService
 from google.adk.tools import load_memory
-from agent.prompts.cloud_build import CLOUD_BUILD_INSTRUCTION_PROMPT
-from agent.prompts.root import ROOT_PROMPT
-from agent.prompts.design import DESIGN_PROMPT
+from agent.prompts import PROMPTS
 
 
 session_service = InMemorySessionService()
@@ -66,7 +64,7 @@ cloud_build_agent = LlmAgent(
     description=(
         "You are an autonomous Google Cloud Build expert"
     ),
-    instruction=CLOUD_BUILD_INSTRUCTION_PROMPT,
+    instruction=PROMPTS["CLOUD_BUILD_PROMPT"],
     planner=PlanReActPlanner(),
     tools=[filesystem_mcp, gcp_devops_mcp, transfer_to_root_agent]
 )
@@ -77,7 +75,7 @@ design_agent = LlmAgent(
     description=(
         "Designs and refines Google Cloud CI/CD pipelines through an iterative, conversational process. It gathers user requirements, proposes architectures using a standard set of GCP DevOps tools, and produces a final pipeline specification for implementation."
     ),
-    instruction=DESIGN_PROMPT,
+    instruction=PROMPTS["DESIGN_PROMPT"],
     planner=PlanReActPlanner(),
     tools=[filesystem_mcp, gcp_devops_mcp, transfer_to_root_agent],
 )
@@ -87,7 +85,7 @@ root_agent = Agent(
     model="gemini-2.5-pro",
     planner=PlanReActPlanner(),
     description="An orchestrator agent that resolves and stores GCP environment context before delegating the user's task to a specialized downstream tool.",
-    instruction= ROOT_PROMPT,
+    instruction= PROMPTS["ROOT_PROMPT"],
     tools=[filesystem_mcp],
     sub_agents=[cloud_build_agent, design_agent]
 )

@@ -129,3 +129,29 @@ def get_developer_connect_connection(project_id: str, location: str, connection_
 
     except Exception as e:
         return {"error": str(e)}
+
+@mcp.tool
+def find_git_repository_links_for_git_repo(project_id: str, location: str, repo_uri: str):
+    """Finds already configured Developer Connect Git Repository Links for a particular git repository.
+
+    Args:
+        project_id: The ID of the Google Cloud project.
+        location: The location of the connections.
+        repo_uri: The URI of the repository to link.
+
+    Returns:
+        A dictionary containing a list of git repository links or an error message.
+    """
+    try:
+        credentials, project = google.auth.default()
+        service = discovery.build('developerconnect', 'v1', credentials=credentials)
+
+        parent = f"projects/{project_id}/locations/{location}/connections/-"
+        request = service.projects().locations().connections().gitRepositoryLinks().list(parent=parent, filter=f'clone_uri="{repo_uri}"')
+        response = request.execute()
+
+        links = response.get("gitRepositoryLinks", [])
+        return {"gitRepositoryLinks": links}
+
+    except Exception as e:
+        return {"error": str(e)}
