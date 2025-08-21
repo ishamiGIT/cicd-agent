@@ -10,7 +10,7 @@ from google.adk.memory import InMemoryMemoryService
 from google.adk import Runner
 from google.adk.sessions import InMemorySessionService
 from google.adk.tools import load_memory
-from agent.prompts import PROMPTS
+from cicd_agent.prompts import PROMPTS
 
 
 session_service = InMemorySessionService()
