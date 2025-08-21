@@ -4,7 +4,7 @@ from app import mcp
 
 
 @mcp.tool
-def create_cloud_build_trigger(project_id: str, location_id: str, trigger_id: str, developer_connect_git_repository_link: str):
+def create_cloud_build_trigger(project_id: str, location_id: str, trigger_id: str, developer_connect_git_repository_link: str, service_account: str):
     """Creates a new Cloud Build trigger.
 
     Args:
@@ -30,7 +30,7 @@ def create_cloud_build_trigger(project_id: str, location_id: str, trigger_id: st
                 },
             },
             "autodetect": True,
-            "service_account" : "projects/test-ca-123/serviceAccounts/827066257232-compute@developer.gserviceaccount.com",
+            "service_account" : service_account,
         }
 
         request = service.projects().locations().triggers().create(parent=parent, body=trigger)

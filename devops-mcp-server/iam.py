@@ -1,32 +1,9 @@
-from fastapi import APIRouter, HTTPException
 import google.auth
-from googleapiclient.discovery import build
-from mcp import mcp_capability
+from googleapiclient import discovery
+from app import mcp
 
-router = APIRouter()
 
-@router.post("/iam/createServiceAccount/")
-@mcp_capability(
-    name="iam/createServiceAccount/",
-    description="Creates a new Google Cloud Platform service account.",
-    parameters=[
-        {
-            "name": "project_id",
-            "type": "string",
-            "description": "The ID of the GCP project.",
-        },
-        {
-            "name": "display_name",
-            "type": "string",
-            "description": "The display name for the service account.",
-        },
-        {
-            "name": "account_id",
-            "type": "string",
-            "description": "The ID for the service account (lowercase, alphanumeric, hyphen allowed).",
-        },
-    ],
-)
+@mcp.tool
 def create_service_account(project_id: str, display_name: str, account_id: str):
     """Creates a new Google Cloud Platform service account.
 
@@ -39,7 +16,7 @@ def create_service_account(project_id: str, display_name: str, account_id: str):
         credentials, project = google.auth.default(
             scopes=["https://www.googleapis.com/auth/cloud-platform"]
         )
-        service = build("iam", "v1", credentials=credentials)
+        service = discovery.build("iam", "v1", credentials=credentials)
 
         project_path = f"projects/{project_id}"
         service_account_body = {
@@ -58,41 +35,16 @@ def create_service_account(project_id: str, display_name: str, account_id: str):
         return {"message": f"Successfully created service account: {response['email']}"}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return {"error": str(e)}
 
-@router.post("/iam/addRoleBinding/")
-@mcp_capability(
-    name="iam/addRoleBinding/",
-    description="Adds an IAM role binding to a Google Cloud Platform resource.",
-    parameters=[
-        {
-            "name": "resource_type",
-            "type": "string",
-            "description": "The type of resource (e.g., 'projects', 'folders', 'organizations').",
-        },
-        {
-            "name": "resource_id",
-            "type": "string",
-            "description": "The ID of the resource.",
-        },
-        {
-            "name": "role",
-            "type": "string",
-            "description": "The role to bind (e.g., 'roles/editor', 'roles/viewer').",
-        },
-        {
-            "name": "member",
-            "type": "string",
-            "description": "The member to bind the role to (e.g., 'user:example@example.com', 'serviceAccount:my-service-account@project-id.iam.gserviceaccount.com').",
-        },
-    ],
-)
+
+@mcp.tool
 def add_iam_role_binding(resource_type: str, resource_id: str, role: str, member: str):
     """Adds an IAM role binding to a Google Cloud Platform resource.
 
     Args:
         resource_type: The type of resource (e.g., 'projects', 'folders', 'organizations').
-        resource_id: The ID of the resource.
+        resource_id: The ID of the resource. my-project, 1234320592234
         role: The role to bind (e.g., 'roles/editor', 'roles/viewer').
         member: The member to bind the role to (e.g., 'user:example@example.com', 'serviceAccount:my-service-account@project-id.iam.gserviceaccount.com').
     """
@@ -100,7 +52,7 @@ def add_iam_role_binding(resource_type: str, resource_id: str, role: str, member
         credentials, project = google.auth.default(
             scopes=["https://www.googleapis.com/auth/cloud-platform"]
         )
-        service = build("cloudresourcemanager", "v1", credentials=credentials)
+        service = discovery.build("cloudresourcemanager", "v1", credentials=credentials)
 
         # Get the current IAM policy
         policy_request = service.projects().getIamPolicy(
@@ -121,4 +73,58 @@ def add_iam_role_binding(resource_type: str, resource_id: str, role: str, member
         return {"message": f"Successfully added role binding for {member} with role {role} to {resource_type}/{resource_id}"}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return {"error": str(e)}
+
+
+@mcp.tool
+def list_service_accounts(project_id: str):
+    """Lists all service accounts in a project.
+
+    Args:
+        project_id: The ID of the Google Cloud project.
+    """
+    try:
+        credentials, project = google.auth.default(
+            scopes=["https://www.googleapis.com/auth/cloud-platform"]
+        )
+        service = discovery.build("iam", "v1", credentials=credentials)
+
+        parent = f"projects/{project_id}"
+        request = service.projects().serviceAccounts().list(name=parent)
+        response = request.execute()
+
+        return response.get("accounts", [])
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool
+def get_iam_role_binding(project_id: str, service_account_email: str):
+    """Gets the IAM role bindings for a service account.
+
+    Args:
+        project_id: The ID of the GCP project.
+        service_account_email: The email of the service account.
+    """
+    try:
+        credentials, project = google.auth.default(
+            scopes=["https://www.googleapis.com/auth/cloud-platform"]
+        )
+        service = discovery.build("cloudresourcemanager", "v1", credentials=credentials)
+
+        # Get the current IAM policy
+        policy_request = service.projects().getIamPolicy(
+            resource=project_id, body={}
+        )
+        policy = policy_request.execute()
+
+        bindings = []
+        for binding in policy.get("bindings", []):
+            if f"serviceAccount:{service_account_email}" in binding.get("members", []):
+                bindings.append(binding.get("role"))
+
+        return {"roles": bindings}
+
+    except Exception as e:
+        return {"error": str(e)}

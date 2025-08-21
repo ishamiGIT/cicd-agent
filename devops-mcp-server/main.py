@@ -6,6 +6,7 @@ from artifact_registry import *
 from cloud_run import *
 from dev_connect import *
 from cloud_build import *
+from iam import *
 
 # Sample tool
 @mcp.tool
