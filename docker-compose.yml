@@ -16,11 +16,14 @@ services:
     volumes:
       # Mounts your gcloud config from the host into the container
       - ~/.config/gcloud:/root/.config/gcloud
+      # Mounts the current directory on the host to /data in the container
+      - './:/data'
     environment:
       # Sets the path for Google Application Credentials inside the container
       - GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json
       # Your existing environment variable
       - DEVOPS_MCP_URL=http://devops-mcp:9000/mcp
+      - WORKING_DIR=/data
     depends_on:
       - devops-mcp
 

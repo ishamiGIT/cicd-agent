@@ -23,4 +23,12 @@ app: FastAPI = get_fast_api_app(
 
 if __name__ == "__main__":
     # Use the PORT environment variable provided by Cloud Run, defaulting to 8080
+    logging.basicConfig(
+        level=logging.INFO,
+        stream=sys.stdout,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    logger = logging.getLogger(__name__)
+    logger.info(f"ENV '{os.environ.get('DEVOPS_MCP_URL', 'http://host.docker.internal:9000/mcp')}'")
+    logger.info(f"ENV '{os.environ.get('WORKING_DIR', '/data')}'")
     uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))

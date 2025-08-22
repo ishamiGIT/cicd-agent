@@ -1,5 +1,6 @@
 import datetime
 import os
+import logging
 from zoneinfo import ZoneInfo
 from google.adk.agents import Agent, LlmAgent
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, StreamableHTTPConnectionParams, StdioConnectionParams, StdioServerParameters
@@ -16,7 +17,6 @@ from cicd_agent.prompts import PROMPTS
 session_service = InMemorySessionService()
 memory_service = InMemoryMemoryService()
 
-TARGET_FOLDER_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "/")
 # git_mcp = MCPToolset(
 #                     connection_params=StdioConnectionParams(
 #                         server_params = StdioServerParameters(
@@ -29,6 +29,7 @@ TARGET_FOLDER_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "/
 #                     ),
 #                 )
 
+TARGET_FOLDER_PATH = os.environ.get('WORKING_DIR', '/data')
 filesystem_mcp = MCPToolset(
                     connection_params=StdioConnectionParams(
                         server_params = StdioServerParameters(
@@ -86,7 +87,7 @@ root_agent = Agent(
     planner=PlanReActPlanner(),
     description="An orchestrator agent that resolves and stores GCP environment context before delegating the user's task to a specialized downstream tool.",
     instruction= PROMPTS["ROOT_PROMPT"],
-    tools=[filesystem_mcp],
+    tools=[filesystem_mcp, gcp_devops_mcp],
     sub_agents=[cloud_build_agent, design_agent]
 )
 
