@@ -61,8 +61,6 @@ Finally, combine all findings from the previous steps into a single, unified sum
     ```json
     {
       "pipelineName": "webapp-main-pipeline",
-      "gcp_project": "my-gcp-project-123",
-      "location": "us-central1",
       "resources": {
         "source_connection": {
           "tool": "DeveloperConnect",

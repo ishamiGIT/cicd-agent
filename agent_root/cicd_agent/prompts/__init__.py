@@ -8,9 +8,9 @@ PROMPTS = {}
 
 # 3. Define which files to load into which keys in the dictionary.
 FILES_TO_LOAD = {
-    'ROOT_PROMPT': 'agent/prompts/root.md',
-    'CLOUD_BUILD_PROMPT': 'agent/prompts/cloud_build.md',
-    'DESIGN_PROMPT': 'agent/prompts/design.md',
+    'ROOT_PROMPT': 'cicd_agent/prompts/root.md',
+    'CLOUD_BUILD_PROMPT': 'cicd_agent/prompts/cloud_build.md',
+    'DESIGN_PROMPT': 'cicd_agent/prompts/design.md',
 }
 
 def load_prompts_into_dict(target_dict, files_map):

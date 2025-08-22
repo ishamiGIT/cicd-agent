@@ -49,7 +49,7 @@ filesystem_mcp = MCPToolset(
 
 gcp_devops_mcp = MCPToolset(
                     connection_params=StreamableHTTPConnectionParams(
-                        url="http://localhost:9000/mcp",
+                        url = os.environ.get('DEVOPS_MCP_URL', 'http://host.docker.internal:9000/mcp'),
                     ),
                 )
 
