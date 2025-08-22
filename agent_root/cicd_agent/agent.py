@@ -63,7 +63,12 @@ cloud_build_agent = LlmAgent(
     name="cloud_build_agent",
     model="gemini-2.5-pro",
     description=(
-        "You are an autonomous Google Cloud Build expert"
+        """
+        An autonomous agent that builds and deploys Google Cloud Build pipelines.
+        It auto-discovers context (project, location, app type) from local files,
+        provisions required resources like Artifact Registry repositories, Developer connect Connections,
+        generates cloudbuild.yaml if missing, and runs the build.
+        """
     ),
     instruction=PROMPTS["CLOUD_BUILD_PROMPT"],
     planner=PlanReActPlanner(),
@@ -74,20 +79,27 @@ design_agent = LlmAgent(
     name="design_agent",
     model="gemini-2.5-pro",
     description=(
-        "Designs and refines Google Cloud CI/CD pipelines through an iterative, conversational process. It gathers user requirements, proposes architectures using a standard set of GCP DevOps tools, and produces a final pipeline specification for implementation."
+        """
+        Designs and refines Google Cloud CI/CD pipelines through an iterative, conversational process.
+        It gathers user requirements, proposes architectures using a standard set of GCP DevOps tools,
+        and produces a final pipeline specification for implementation.
+        """
     ),
     instruction=PROMPTS["DESIGN_PROMPT"],
     planner=PlanReActPlanner(),
-    tools=[filesystem_mcp, gcp_devops_mcp, transfer_to_root_agent],
+    tools=[filesystem_mcp, transfer_to_root_agent],
 )
 
 root_agent = Agent(
     name="cicd_agent",
     model="gemini-2.5-pro",
     planner=PlanReActPlanner(),
-    description="An orchestrator agent that resolves and stores GCP environment context before delegating the user's task to a specialized downstream tool.",
+    description="""
+    An orchestrator agent that resolves and stores GCP environment context before delegating the user's task
+    to a specialized downstream tool.
+    """,
     instruction= PROMPTS["ROOT_PROMPT"],
-    tools=[filesystem_mcp, gcp_devops_mcp],
+    tools=[filesystem_mcp],
     sub_agents=[cloud_build_agent, design_agent]
 )
 

@@ -10,12 +10,14 @@ PROMPTS = {}
 FILES_TO_LOAD = {
     'ROOT_PROMPT': 'cicd_agent/prompts/root.md',
     'CLOUD_BUILD_PROMPT': 'cicd_agent/prompts/cloud_build.md',
+    'CLOUD_DEPLOY_PROMPT': 'cicd_agent/prompts/cloud_deploy.md',
     'DESIGN_PROMPT': 'cicd_agent/prompts/design.md',
 }
 
 def load_prompts_into_dict(target_dict, files_map):
     """
-    Reads from files and populates a single dictionary.
+    Reads from files and populates a single dictionary
+    with all the prompts for instructions.
     """
     for key, filename in files_map.items():
         try:

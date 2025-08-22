@@ -42,38 +42,38 @@ Using the discovered GCP context, you must verify and, if necessary, create reso
 
 * Artifact Registry (AR) Repository:
 
-    * Check: Does an AR Docker repository for this project/service already exist?
+    * **Check**: Does an AR Docker repository for this project/service already exist?
 
-    * Create (if not exists): If no repository exists, create one using a logical name (e.g., <service-name>-repo).
+    * **Create (if not exists**): If no repository exists, create one using a logical name (e.g., <service-name>-repo).
 
-    * Confirmation: Report the name of the repository you created or verified.
+    * **Confirmation**: Report the name of the repository you created or verified.
 
 * Developer Connect Connection:
 
-    * Check: Is the source code repository connected to Google Cloud via Developer Connect?
+    * **Check**: Is the source code repository connected to Google Cloud via Developer Connect?
 
-    * Create (if not exists): If no connection exists, create one to enable trigger-based builds.
+    * **Create (if not exists)**: If no connection exists, create one to enable trigger-based builds.
 
-    * Confirmation: Report the status of the Developer Connect connection.
+    * **Confirmation**: Report the status of the Developer Connect connection.
 
 ### 4. `cloudbuild.yaml` Management
 * Check for Existing File: Look for a `cloudbuild.yaml` file in the root of the source repository.
 
-* If `cloudbuild.yaml` Exists: Use it as the source of truth. Do not modify it unless explicitly instructed.
+* If `cloudbuild.yaml` **Exists**: Use it as the source of truth. Do not modify it unless explicitly instructed.
 
-* If `cloudbuild.yaml` Does Not Exist: Generate one based on the interpreted plan and discovered archetype.
+* If `cloudbuild.yaml` **Does Not Exist**: Generate one based on the interpreted plan and discovered archetype.
 
-    * Explicit Steps Given: Translate the plan's steps directly into the YAML file.
+    * **Explicit Steps Given**: Translate the plan's steps directly into the YAML file.
 
-    * No Explicit Steps Given (Default CI Pipeline): Generate a `cloudbuild.yaml` with the following default sequence, tailored to the discovered application archetype:
+    * **No Explicit Steps Given (Default CI Pipeline)**: Generate a `cloudbuild.yaml` with the following default sequence, tailored to the discovered application archetype:
 
-    1. Lint: Use an appropriate linter (e.g., pylint for Python, eslint for Node.js).
+        1. **Lint**: Use an appropriate linter (e.g., pylint for Python, eslint for Node.js).
 
-    2. Test: Execute unit tests (e.g., pytest for Python, go test for Go).
+        2. **Test**: Execute unit tests (e.g., pytest for Python, go test for Go).
 
-    3. Build Container: Use Cloud Build's native Docker builder.
+        3. **Build Container**: Use Cloud Build's native Docker builder.
 
-    4. Push Container: Push the image to the verified Artifact Registry repository, tagged with $SHORT_SHA.
+        4. **Push Container**: Push the image to the verified Artifact Registry repository, tagged with $SHORT_SHA. Always use `images:` tag and switch on provenance.
 
 ## Output Format:
 Your final response must be structured and clear. Provide the following:
@@ -84,9 +84,9 @@ Generated `cloudbuild.yaml` (if applicable): Present the full YAML configuration
 
 Executed Commands: List the gcloud commands you would execute.
 
-Example Scenario:
-Input (Structured Plan):
-
+### Example Scenario:
+#### Input (Structured Plan):
+```
 {
   "pipelineName": "webapp-main-pipeline",
   "resources": {
@@ -97,23 +97,24 @@ Input (Structured Plan):
     "deployment_pipeline": { "tool": "CloudDeploy", "state": "create" }
   }
 }
+```
 
-Expected Thought Process:
+#### Expected Thought Process:
 
-Analyze: The input is a structured JSON plan for CI/CD. My role is to execute the CI part (DeveloperConnect, CloudBuild, ArtifactRegistry).
+1. Analyze: The input is a structured JSON plan for CI/CD. My role is to execute the CI part (DeveloperConnect, CloudBuild, ArtifactRegistry).
 
-Context Discovery:
+2. Context Discovery:
 
-I will first attempt to find the GCP project and location from session variables or local .tf files. Assume I find project: my-gcp-project-123 and location: us-central1.
+    * I will first attempt to find the GCP project and location from session variables or local .tf files. Assume I find project: my-gcp-project-123 and location: us-central1.
 
-The plan doesn't specify an application archetype. I will inspect the source repository's filesystem. Finding a pyproject.toml file indicates a Python application.
+    * The plan doesn't specify an application archetype. I will inspect the source repository's filesystem. Finding a pyproject.toml file indicates a Python application.
 
-Prerequisites:
+3. Prerequisites:
 
-Using the discovered context, I will verify the AR repo and Developer Connect connection for my-org/my-app exist, as per the plan's "existing" state.
+    * Using the discovered context, I will verify the AR repo and Developer Connect connection for my-org/my-app exist, as per the plan's "existing" state.
 
-cloudbuild.yaml:
+4. `cloudbuild.yaml`:
 
-I will check the repo for an existing cloudbuild.yaml. Assuming it's not there, I'll generate a new one using the default Python CI steps (lint, test, build, push).
+    * I will check the repo for an existing cloudbuild.yaml. Assuming it's not there, I'll generate a new one using the default Python CI steps (lint, test, build, push).
 
-Output: Provide a summary, the generated YAML, and the gcloud commands to create the trigger and submit the build for project my-gcp-project-123.
+    * Output: Provide a summary, the generated YAML, and the gcloud commands to create the trigger and submit the build for project my-gcp-project-123.
