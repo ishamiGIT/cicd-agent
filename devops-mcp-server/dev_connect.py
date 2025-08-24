@@ -33,8 +33,15 @@ def create_developer_connect_connection(project_id: str, location: str, connecti
             connectionId=connection_id,
             body=body
         )
-        response = create_request.execute()
-        time.sleep(3) # sleep for 3 seconds so that the operation suceeds
+        operation = create_request.execute()
+
+        operation_name = operation['name']
+        while 'done' not in operation or not operation['done']:
+            time.sleep(1)
+            operation = service.projects().locations().operations().get(name=operation_name).execute()
+
+        if 'error' in operation:
+            return {'error': operation['error']}
 
         name = f"projects/{project_id}/locations/{location}/connections/{connection_id}"
         get_request = service.projects().locations().connections().get(
@@ -75,8 +82,21 @@ def create_developer_connect_git_repository_link(project_id: str, location: str,
             gitRepositoryLinkId=repository_link_id,
             body=body
         )
-        response = create_request.execute()
-        return {"message": f"Successfully created Developer Connect repository link: {response}"}
+        operation = create_request.execute()
+        
+        operation_name = operation['name']
+        while 'done' not in operation or not operation['done']:
+            time.sleep(1)
+            operation = service.projects().locations().operations().get(name=operation_name).execute()
+
+        if 'error' in operation:
+            return {'error': operation['error']}
+
+        get_request = service.projects().locations().connections().gitRepositoryLinks().get(
+            name=link_name,
+        )
+        response = get_request.execute()
+        return {"repository_link": response}
 
     except Exception as e:
         return {"error": str(e)}

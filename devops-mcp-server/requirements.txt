@@ -9,3 +9,4 @@ google-cloud-containeranalysis
 google-cloud-run
 pytest
 pylint
+google-cloud-deploy
