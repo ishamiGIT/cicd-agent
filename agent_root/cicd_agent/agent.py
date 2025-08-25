@@ -64,18 +64,33 @@ def transfer_to_implementation_agent(tool_context: ToolContext) -> str:
     tool_context.actions.transfer_to_agent = "implementation_agent"
     return "Transferring to the implementation_agent..."
 
-cloud_build_agent = LlmAgent(
-    name="cloud_build_agent",
+# cloud_build_agent = LlmAgent(
+#     name="cloud_build_agent",
+#     model= MODEL,
+#     description=(
+#         """
+#         An autonomous agent that builds and deploys Google Cloud Build pipelines.
+#         It auto-discovers context (project, location, app type) from local files,
+#         provisions required resources like Artifact Registry repositories, Developer connect Connections,
+#         generates cloudbuild.yaml if missing, and runs the build.
+#         """
+#     ),
+#     instruction=PROMPTS["CLOUD_BUILD_PROMPT"],
+#     planner=PlanReActPlanner(),
+#     tools=[filesystem_mcp, gcp_devops_mcp, transfer_to_root_agent]
+# )
+
+implementation_agent = LlmAgent(
+    name="implementation_agent",
     model= MODEL,
     description=(
         """
-        An autonomous agent that builds and deploys Google Cloud Build pipelines.
-        It auto-discovers context (project, location, app type) from local files,
-        provisions required resources like Artifact Registry repositories, Developer connect Connections,
-        generates cloudbuild.yaml if missing, and runs the build.
+        Executes concrete plans and direct commands to provision and manage GCP resources. 
+        Use this agent for any task that involves doing or making, such as applying a YAML plan or handling a single command like "create an artifact registry repo".
+        It does not design or create new plans.
         """
     ),
-    instruction=PROMPTS["CLOUD_BUILD_PROMPT"],
+    instruction=PROMPTS["IMPLEMNETATION_PROMPT"],
     planner=PlanReActPlanner(),
     tools=[filesystem_mcp, gcp_devops_mcp, transfer_to_root_agent]
 )
@@ -92,7 +107,7 @@ design_agent = LlmAgent(
     ),
     instruction=PROMPTS["DESIGN_PROMPT"],
     planner=PlanReActPlanner(),
-    tools=[filesystem_mcp, transfer_to_root_agent],
+    tools=[filesystem_mcp, transfer_to_implementation_agent],
 )
 
 root_agent = Agent(
@@ -105,7 +120,7 @@ root_agent = Agent(
     """,
     instruction= PROMPTS["ROOT_PROMPT"],
     tools=[filesystem_mcp],
-    sub_agents=[cloud_build_agent, design_agent]
+    sub_agents=[implementation_agent, design_agent]
 )
 
 runner = Runner(

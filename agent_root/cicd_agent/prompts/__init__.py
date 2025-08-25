@@ -9,8 +9,7 @@ PROMPTS = {}
 # 3. Define which files to load into which keys in the dictionary.
 FILES_TO_LOAD = {
     'ROOT_PROMPT': 'cicd_agent/prompts/root.md',
-    'CLOUD_BUILD_PROMPT': 'cicd_agent/prompts/cloud_build.md',
-    'CLOUD_DEPLOY_PROMPT': 'cicd_agent/prompts/cloud_deploy.md',
+    'IMPLEMNETATION_PROMPT': 'cicd_agent/prompts/implementation.md',
     'DESIGN_PROMPT': 'cicd_agent/prompts/design.md',
 }
 
