@@ -59,9 +59,11 @@ def transfer_to_root_agent(tool_context: ToolContext) -> str:
     tool_context.actions.transfer_to_agent = "cicd_agent"
     return "Transferring to the cicd_agent..."
 
-def transfer_to_implementation_agent(tool_context: ToolContext) -> str:
+def transfer_to_implementation_agent(plan: str, tool_context: ToolContext) -> str:
     """Transfers control to implementation agent"""
     tool_context.actions.transfer_to_agent = "implementation_agent"
+    user_plan_key = "user:plan"
+    tool_context.state[user_plan_key] = plan
     return "Transferring to the implementation_agent..."
 
 # cloud_build_agent = LlmAgent(
@@ -107,7 +109,7 @@ design_agent = LlmAgent(
     ),
     instruction=PROMPTS["DESIGN_PROMPT"],
     planner=PlanReActPlanner(),
-    tools=[filesystem_mcp, transfer_to_implementation_agent],
+    tools=[filesystem_mcp, transfer_to_implementation_agent, transfer_to_root_agent],
 )
 
 root_agent = Agent(
