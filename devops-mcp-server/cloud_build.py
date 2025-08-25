@@ -1,6 +1,7 @@
 import google.auth
 from googleapiclient import discovery
 from app import mcp
+import time
 
 
 @mcp.tool
@@ -34,8 +35,41 @@ def create_cloud_build_trigger(project_id: str, location_id: str, trigger_id: st
         }
 
         request = service.projects().locations().triggers().create(parent=parent, body=trigger)
+        operation = request.execute()
+
+        operation_name = operation['name']
+        while 'done' not in operation or not operation['done']:
+            time.sleep(1)
+            operation = service.projects().locations().operations().get(name=operation_name).execute()
+
+        if 'error' in operation:
+            return {'error': operation['error']}
+
+        return {"message": f"Successfully created Cloud Build trigger: {operation.get('response').get('name')}"}
+
+    except Exception as e:
+        return {"error": str(e)}
+
+@mcp.tool
+def run_build_trigger(project_id: str, location: str, trigger_id: str):
+    """Runs a Cloud Build trigger.
+
+    Args:
+        project_id: The ID of the Google Cloud project.
+        location: The location of the trigger.
+        trigger_id: The ID of the trigger to run.
+    """
+    try:
+        credentials, project = google.auth.default(
+            scopes=["https://www.googleapis.com/auth/cloud-platform"]
+        )
+        service = discovery.build('cloudbuild', 'v1', credentials=credentials)
+
+        name = f"projects/{project_id}/locations/{location}/triggers/{trigger_id}"
+        request = service.projects().locations().triggers().run(name=name, body={})
         response = request.execute()
-        return {"message": f"Successfully created Cloud Build trigger: {response.get('name')}"}
+
+        return {"message": f"Successfully ran Cloud Build trigger: {trigger_id}", "operation": response}
 
     except Exception as e:
         return {"error": str(e)}

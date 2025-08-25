@@ -49,7 +49,7 @@ def create_developer_connect_connection(project_id: str, location: str, connecti
         )
         response = get_request.execute()
 
-        return {"connection": response}
+        return {"message": f"Please authorize the connection using the following URI to finish connection setup: {response['installation_state']['uri']}", "connection": response}
 
     except Exception as e:
         return {"error": str(e)}

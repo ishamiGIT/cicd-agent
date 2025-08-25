@@ -16,7 +16,7 @@ from cicd_agent.prompts import PROMPTS
 
 session_service = InMemorySessionService()
 memory_service = InMemoryMemoryService()
-
+MODEL = "gemini-2.5-pro"
 # git_mcp = MCPToolset(
 #                     connection_params=StdioConnectionParams(
 #                         server_params = StdioServerParameters(
@@ -59,9 +59,14 @@ def transfer_to_root_agent(tool_context: ToolContext) -> str:
     tool_context.actions.transfer_to_agent = "cicd_agent"
     return "Transferring to the cicd_agent..."
 
+def transfer_to_implementation_agent(tool_context: ToolContext) -> str:
+    """Transfers control to implementation agent"""
+    tool_context.actions.transfer_to_agent = "implementation_agent"
+    return "Transferring to the implementation_agent..."
+
 cloud_build_agent = LlmAgent(
     name="cloud_build_agent",
-    model="gemini-2.5-pro",
+    model= MODEL,
     description=(
         """
         An autonomous agent that builds and deploys Google Cloud Build pipelines.
@@ -77,7 +82,7 @@ cloud_build_agent = LlmAgent(
 
 design_agent = LlmAgent(
     name="design_agent",
-    model="gemini-2.5-pro",
+    model=MODEL,
     description=(
         """
         Designs and refines Google Cloud CI/CD pipelines through an iterative, conversational process.
@@ -92,7 +97,7 @@ design_agent = LlmAgent(
 
 root_agent = Agent(
     name="cicd_agent",
-    model="gemini-2.5-pro",
+    model=MODEL,
     planner=PlanReActPlanner(),
     description="""
     An orchestrator agent that resolves and stores GCP environment context before delegating the user's task
