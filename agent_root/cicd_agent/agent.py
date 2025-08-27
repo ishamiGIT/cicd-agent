@@ -1,7 +1,6 @@
 import datetime
 import os
 import logging
-from zoneinfo import ZoneInfo
 from google.adk.agents import Agent, LlmAgent
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, StreamableHTTPConnectionParams, StdioConnectionParams, StdioServerParameters
 from google.adk.planners import PlanReActPlanner
@@ -10,13 +9,16 @@ from google.adk.tools import ToolContext
 from google.adk.memory import InMemoryMemoryService
 from google.adk import Runner
 from google.adk.sessions import InMemorySessionService
-from google.adk.tools import load_memory
-from cicd_agent.prompts import PROMPTS
-from google.adk.tools import VertexAiSearchTool
+from cicd_agent.prompts import *
+from vertexai import rag
 
 session_service = InMemorySessionService()
 memory_service = InMemoryMemoryService()
 MODEL = "gemini-2.5-pro"
+RAG_PATTERNS_CORPUS_ID = "projects/haroonc-exp/locations/us-east4/ragCorpora/rag-cicd-patterns"
+RAG_KNOWLEDGE_CORPUS_ID = "projects/haroonc-exp/locations/us-east4/ragCorpora/rag-cicd-knowledge"
+TARGET_FOLDER_PATH = os.environ.get('WORKING_DIR', '/data')
+
 # git_mcp = MCPToolset(
 #                     connection_params=StdioConnectionParams(
 #                         server_params = StdioServerParameters(
@@ -29,7 +31,7 @@ MODEL = "gemini-2.5-pro"
 #                     ),
 #                 )
 
-TARGET_FOLDER_PATH = os.environ.get('WORKING_DIR', '/data')
+
 filesystem_mcp = MCPToolset(
                     connection_params=StdioConnectionParams(
                         server_params = StdioServerParameters(
@@ -66,21 +68,58 @@ def transfer_to_implementation_agent(plan: str, tool_context: ToolContext) -> st
     tool_context.state[user_plan_key] = plan
     return "Transferring to the implementation_agent..."
 
-# cloud_build_agent = LlmAgent(
-#     name="cloud_build_agent",
-#     model= MODEL,
-#     description=(
-#         """
-#         An autonomous agent that builds and deploys Google Cloud Build pipelines.
-#         It auto-discovers context (project, location, app type) from local files,
-#         provisions required resources like Artifact Registry repositories, Developer connect Connections,
-#         generates cloudbuild.yaml if missing, and runs the build.
-#         """
-#     ),
-#     instruction=PROMPTS["CLOUD_BUILD_PROMPT"],
-#     planner=PlanReActPlanner(),
-#     tools=[filesystem_mcp, gcp_devops_mcp, transfer_to_root_agent]
-# )
+def query_knowledge(query: str):
+    """Queries the knowledge base for information on how to build and manage CI/CD pipelines.
+
+    Args:
+        query: The query to search for in the knowledge base.
+
+    Returns:
+        The response from the retrieval query.
+    """
+    rag_retrieval_config = rag.RagRetrievalConfig(
+        top_k=3,  # Optional
+        filter=rag.Filter(vector_distance_threshold=0.5),  # Optional
+    )
+    response = rag.retrieval_query(
+        rag_resources=[
+            rag.RagResource(
+                rag_corpus=RAG_KNOWLEDGE_CORPUS_ID,
+                # Optional: supply IDs from `rag.list_files()`.
+                # rag_file_ids=["rag-file-1", "rag-file-2", ...],
+            )
+        ],
+        text=query,
+        rag_retrieval_config=rag_retrieval_config,
+    )
+    return response
+
+def search_common_cicd_patterns(keywords: str):
+    """Searches for common CI/CD patterns and best practices.
+
+    Args:
+        keywords: The keywords to search for in the CI/CD patterns.
+
+    Returns:
+        The response from the retrieval query.
+    """
+    rag_retrieval_config = rag.RagRetrievalConfig(
+        top_k=3,  # Optional
+        filter=rag.Filter(vector_distance_threshold=0.5),  # Optional
+    )
+    response = rag.retrieval_query(
+        rag_resources=[
+            rag.RagResource(
+                rag_corpus=RAG_PATTERNS_CORPUS_ID,
+                # Optional: supply IDs from `rag.list_files()`.
+                # rag_file_ids=["rag-file-1", "rag-file-2", ...],
+            )
+        ],
+        text=keywords,
+        rag_retrieval_config=rag_retrieval_config,
+    )
+    return response
+
 
 implementation_agent = LlmAgent(
     name="implementation_agent",
@@ -92,7 +131,7 @@ implementation_agent = LlmAgent(
         It does not design or create new plans.
         """
     ),
-    instruction=PROMPTS["IMPLEMNETATION_PROMPT"],
+    instruction=PROMPTS[IMPLEMNETATION_PROMPT],
     planner=PlanReActPlanner(),
     tools=[filesystem_mcp, gcp_devops_mcp, transfer_to_root_agent]
 )
@@ -107,43 +146,13 @@ design_agent = LlmAgent(
         and produces a final pipeline specification for implementation.
         """
     ),
-    instruction=PROMPTS["DESIGN_PROMPT"],
+    instruction=PROMPTS[DESIGN_PROMPT],
     planner=PlanReActPlanner(),
-    tools=[filesystem_mcp, transfer_to_implementation_agent, transfer_to_root_agent],
+    tools=[filesystem_mcp, transfer_to_implementation_agent, transfer_to_root_agent, search_common_cicd_patterns, query_knowledge],
 )
 
-# vertexai.init(project="haroonc-exp", location="us-east4")
+vertexai.init(project="haroonc-exp", location="us-east4")
 
-# # Create RagCorpus
-# # Configure embedding model, for example "text-embedding-005".
-# embedding_model_config = rag.RagEmbeddingModelConfig(
-#     vertex_prediction_endpoint=rag.VertexPredictionEndpoint(
-#         publisher_model="publishers/google/models/text-embedding-004"
-#     )
-# )
-
-# cloud_builders_rag_corpus = rag.create_corpus(
-#     display_name="rag-cicd",
-#     backend_config=rag.RagVectorDbConfig(
-#         rag_embedding_model_config=embedding_model_config
-#     ),
-# )
-
-    rag_retrieval_config = rag.RagRetrievalConfig(
-        top_k=3,  # Optional
-        filter=rag.Filter(vector_distance_threshold=0.5),  # Optional
-    )
-    response = rag.retrieval_query(
-        rag_resources=[
-            rag.RagResource(
-                rag_corpus=RAG_CORPUS_ID,
-                # Optional: supply IDs from `rag.list_files()`.
-                # rag_file_ids=["rag-file-1", "rag-file-2", ...],
-            )
-        ],
-        text="How to clone a git repository in cloud build?",
-        rag_retrieval_config=rag_retrieval_config,
-    )
 root_agent = Agent(
     name="cicd_agent",
     model=MODEL,
@@ -152,7 +161,7 @@ root_agent = Agent(
     An orchestrator agent that resolves and stores GCP environment context before delegating the user's task
     to a specialized downstream tool.
     """,
-    instruction= PROMPTS["ROOT_PROMPT"],
+    instruction= PROMPTS[ROOT_PROMPT],
     tools=[filesystem_mcp],
     sub_agents=[implementation_agent, design_agent]
 )

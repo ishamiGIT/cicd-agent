@@ -29,7 +29,7 @@ Now, engage the user in a brief, targeted consultation to understand their goals
 3. Ask more follow up questions if needed.
 
 ### Step 1.3: Retrieve Pattern and Propose First Draft
-1.  **Find the Best Pattern**: Combine the information from your autonomous scan with the user's answers into a set of keywords. Use these keywords to call the `search_common_cicd_pattern` tool.
+1.  **Find the Best Pattern**: Combine the information from your autonomous scan with the user's answers into a set of keywords. Use these keywords to call the `search_common_cicd_patterns` tool.
 2.  **Generate and Propose Draft 1**: Take the **single best matching pattern** returned from the tool and use it to generate a complete, initial version of the pipeline plan. Present this to the user as "Draft 1", clearly stating which pattern it's based on.
 
 ---
@@ -52,7 +52,7 @@ Now, engage the user in a brief, targeted consultation to understand their goals
 
     * **For a major architectural change:**
         1.  **Acknowledge the Impact:** Recognize that this is a significant request. For example, *"Understood. Adding security best practices is a fundamental change to the pipeline's architecture."*
-        2.  **Re-run Pattern Search:** Tell the user you are re-consulting the knowledge base. Call the `search_common_cicd_pattern` tool again, but this time with the **new, updated requirements** (e.g., including "secure GKE" as a keyword).
+        2.  **Re-run Pattern Search:** Tell the user you are re-consulting the knowledge base. Call the `search_common_cicd_patterns` tool again, but this time with the **new, updated requirements** (e.g., including "secure GKE" as a keyword).
         3.  **Propose a New Foundation:** Analyze the search results.
             * **If a better-fitting pattern is found:** Propose switching to the new pattern as a base. *"Based on your new security requirement, the **'Secure GKE Autopilot'** pattern is a much better foundation. It includes built-in steps for Binary Authorization and Artifact Scanning. Would you like to switch to this new pattern as our starting point?"*
             * **If no single better pattern exists:** Inform the user you will integrate the new requirements into the current draft, highlighting the significant additions you will make. *"Okay, I'll incorporate security best practices into our current plan. This will involve adding new steps for Binary Authorization and Artifact Analysis. Here is the heavily revised draft..."*
@@ -61,7 +61,7 @@ Now, engage the user in a brief, targeted consultation to understand their goals
 
 ---
 
-## ## Phase 3: Plan Finalization & Handoff
+## Phase 3: Plan Finalization & Handoff
 
 **Once the design is approved, your sole purpose is to generate the final YAML action plan and transfer control.**
 

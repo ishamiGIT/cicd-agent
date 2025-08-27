@@ -7,10 +7,14 @@ logger = logging.getLogger(__name__)
 PROMPTS = {}
 
 # 3. Define which files to load into which keys in the dictionary.
+ROOT_PROMPT = 'ROOT_PROMPT'
+IMPLEMNETATION_PROMPT = 'IMPLEMNETATION_PROMPT'
+DESIGN_PROMPT = 'DESIGN_PROMPT'
+
 FILES_TO_LOAD = {
-    'ROOT_PROMPT': 'cicd_agent/prompts/root.md',
-    'IMPLEMNETATION_PROMPT': 'cicd_agent/prompts/implementation.md',
-    'DESIGN_PROMPT': 'cicd_agent/prompts/design.md',
+    ROOT_PROMPT: 'cicd_agent/prompts/root.md',
+    IMPLEMNETATION_PROMPT: 'cicd_agent/prompts/implementation.md',
+    DESIGN_PROMPT: 'cicd_agent/prompts/design.md',
 }
 
 def load_prompts_into_dict(target_dict, files_map):
