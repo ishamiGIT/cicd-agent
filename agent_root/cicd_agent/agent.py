@@ -11,14 +11,15 @@ from google.adk import Runner
 from google.adk.sessions import InMemorySessionService
 from cicd_agent.prompts import *
 from vertexai import rag
+import vertexai
 
 session_service = InMemorySessionService()
 memory_service = InMemoryMemoryService()
 MODEL = "gemini-2.5-pro"
-RAG_PATTERNS_CORPUS_ID = "projects/haroonc-exp/locations/us-east4/ragCorpora/rag-cicd-patterns"
+RAG_PATTERNS_CORPUS_ID = "projects/haroonc-exp/locations/us-east4/ragCorpora/7205759403792793600"
 RAG_KNOWLEDGE_CORPUS_ID = "projects/haroonc-exp/locations/us-east4/ragCorpora/rag-cicd-knowledge"
 TARGET_FOLDER_PATH = os.environ.get('WORKING_DIR', '/data')
-
+vertexai.init(project="haroonc-exp", location="us-east4")
 # git_mcp = MCPToolset(
 #                     connection_params=StdioConnectionParams(
 #                         server_params = StdioServerParameters(
@@ -92,7 +93,7 @@ def query_knowledge(query: str):
         text=query,
         rag_retrieval_config=rag_retrieval_config,
     )
-    return response
+    return response.text
 
 def search_common_cicd_patterns(keywords: str):
     """Searches for common CI/CD patterns and best practices.
@@ -118,7 +119,7 @@ def search_common_cicd_patterns(keywords: str):
         text=keywords,
         rag_retrieval_config=rag_retrieval_config,
     )
-    return response
+    return response.text
 
 
 implementation_agent = LlmAgent(
@@ -151,19 +152,29 @@ design_agent = LlmAgent(
     tools=[filesystem_mcp, transfer_to_implementation_agent, transfer_to_root_agent, search_common_cicd_patterns, query_knowledge],
 )
 
-vertexai.init(project="haroonc-exp", location="us-east4")
+# root_agent = Agent(
+#     name="cicd_agent",
+#     model=MODEL,
+#     planner=PlanReActPlanner(),
+#     description="""
+#     An orchestrator agent that resolves and stores GCP environment context before delegating the user's task
+#     to a specialized downstream tool.
+#     """,
+#     instruction= PROMPTS[ROOT_PROMPT],
+#     tools=[filesystem_mcp],
+#     sub_agents=[implementation_agent, design_agent]
+# )
 
 root_agent = Agent(
-    name="cicd_agent",
+    name="test_cicd_agent",
     model=MODEL,
     planner=PlanReActPlanner(),
     description="""
-    An orchestrator agent that resolves and stores GCP environment context before delegating the user's task
-    to a specialized downstream tool.
+    Answers user queries based on tools availbale.
     """,
-    instruction= PROMPTS[ROOT_PROMPT],
-    tools=[filesystem_mcp],
-    sub_agents=[implementation_agent, design_agent]
+    instruction= "Answers user queries based on tools availbale.",
+    tools=[filesystem_mcp, search_common_cicd_patterns, query_knowledge]
+    # sub_agents=[implementation_agent, design_agent]
 )
 
 runner = Runner(
