@@ -1,2 +1,0 @@
-[console_scripts]
-pyragdoc = pyragdoc.cli:main

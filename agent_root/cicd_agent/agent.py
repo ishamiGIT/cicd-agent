@@ -12,7 +12,7 @@ from google.adk import Runner
 from google.adk.sessions import InMemorySessionService
 from google.adk.tools import load_memory
 from cicd_agent.prompts import PROMPTS
-
+from google.adk.tools import VertexAiSearchTool
 
 session_service = InMemorySessionService()
 memory_service = InMemoryMemoryService()
@@ -112,6 +112,38 @@ design_agent = LlmAgent(
     tools=[filesystem_mcp, transfer_to_implementation_agent, transfer_to_root_agent],
 )
 
+# vertexai.init(project="haroonc-exp", location="us-east4")
+
+# # Create RagCorpus
+# # Configure embedding model, for example "text-embedding-005".
+# embedding_model_config = rag.RagEmbeddingModelConfig(
+#     vertex_prediction_endpoint=rag.VertexPredictionEndpoint(
+#         publisher_model="publishers/google/models/text-embedding-004"
+#     )
+# )
+
+# cloud_builders_rag_corpus = rag.create_corpus(
+#     display_name="rag-cicd",
+#     backend_config=rag.RagVectorDbConfig(
+#         rag_embedding_model_config=embedding_model_config
+#     ),
+# )
+
+    rag_retrieval_config = rag.RagRetrievalConfig(
+        top_k=3,  # Optional
+        filter=rag.Filter(vector_distance_threshold=0.5),  # Optional
+    )
+    response = rag.retrieval_query(
+        rag_resources=[
+            rag.RagResource(
+                rag_corpus=RAG_CORPUS_ID,
+                # Optional: supply IDs from `rag.list_files()`.
+                # rag_file_ids=["rag-file-1", "rag-file-2", ...],
+            )
+        ],
+        text="How to clone a git repository in cloud build?",
+        rag_retrieval_config=rag_retrieval_config,
+    )
 root_agent = Agent(
     name="cicd_agent",
     model=MODEL,
