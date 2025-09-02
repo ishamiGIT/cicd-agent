@@ -29,6 +29,7 @@ KNOWLEDGE_RAG_SOURCES = [
         "https://cloud.google.com/docs/buildpacks/ruby",
         "https://cloud.google.com/docs/buildpacks/php",
         "https://cloud.google.com/build/docs/build-config-file-schema",
+        "https://cloud.google.com/build/docs/private-pools/use-in-private-network",
         "https://cloud.google.com/deploy/docs/config-files",
         "https://cloud.google.com/deploy/docs/deploy-app-gke",
         "https://cloud.google.com/deploy/docs/deploy-app-run",
@@ -115,6 +116,6 @@ if __name__ == "__main__":
                 download_git_repo(source,tmpdirname)
             else:
                 logging.error("RAG Source type [%s] is not supported",source["type"])
-        
+
         logging.info(f"Upload all files in these dirs to rag:{os.listdir(tmpdirname)}")
         upload_dir_to_rag(tmpdirname,os.listdir(tmpdirname),RAG_KNOWLEDGE_CORPUS_ID)
