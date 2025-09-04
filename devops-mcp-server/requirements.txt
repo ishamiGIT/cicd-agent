@@ -10,3 +10,4 @@ google-cloud-run
 pytest
 pylint
 google-cloud-deploy
+google-cloud-aiplatform

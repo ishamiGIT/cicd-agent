@@ -70,8 +70,8 @@ def create_cloud_build_trigger(
 
         request = service.projects().locations().triggers().create(parent=parent, body=trigger)
         response = request.execute() # CreateBuildTrigger is not an LRO
-        logger.info(f"Successfully created Cloud Build trigger: {operation['name']}")
-        return {"message": f"Successfully created Cloud Build trigger: {operation['name']}"}
+        logger.info(f"Successfully created Cloud Build trigger: {response['name']}")
+        return {"message": f"Successfully created Cloud Build trigger: {response['name']}"}
 
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}", exc_info=True)
