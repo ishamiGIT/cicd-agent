@@ -9,7 +9,7 @@ This server is designed to be run as a Docker container. Here's how you can buil
 From the root directory of the project, run the following command to build the Docker image:
 
 ```bash
-docker build -t mcp-server .
+docker build -t devops-mcp-server .
 ```
 
 ### 2. Run the Docker Container
@@ -26,16 +26,8 @@ gcloud auth application-default login
 Once the image is built, you can run it as a container. The server will be available on port 8000.
 
 ```bash
-docker run -v ~/.config/gcloud:/root/.config/gcloud -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json -p 8000:8000 mcp-server
+docker run -v ~/.config/gcloud:/root/.config/gcloud -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json -p 9000:9000 devops-mcp-server
 ```
 **Security Warning:** By mounting this directory, you are giving the container access to your `gcloud` credentials. You should only do this with Docker images that you trust.
 
 **Note for Windows users:** The path to the `gcloud` configuration directory is `%APPDATA%\gcloud`.
-
-## Capabilities
-
-This MCP server exposes the following capabilities:
-
-*   **`create_gcp_project`**: Creates a new Google Cloud Platform project.
-    *   **Parameters**:
-        *   `project_id` (string): The desired ID for the new GCP project.

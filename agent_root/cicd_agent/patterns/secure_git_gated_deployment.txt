@@ -1,6 +1,3 @@
-# plan.yaml: A complete pattern definition for a secure CI/CD pipeline.
-# This pattern integrates multiple security gates to ensure the integrity and safety of production deployments.
-
 name: "Secure Git-Gated Deployment"
 description: "A pattern that enforces security throughout the lifecycle. It includes static code analysis (SAST), container vulnerability scanning, and a Binary Authorization policy to ensure only trusted and verified artifacts are deployed to GKE."
 

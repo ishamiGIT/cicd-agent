@@ -16,8 +16,8 @@ import vertexai
 session_service = InMemorySessionService()
 memory_service = InMemoryMemoryService()
 MODEL = "gemini-2.5-pro"
-RAG_PATTERNS_CORPUS_ID = "projects/haroonc-exp/locations/us-east4/ragCorpora/7205759403792793600"
-RAG_KNOWLEDGE_CORPUS_ID = "projects/haroonc-exp/locations/us-east4/ragCorpora/rag-cicd-knowledge"
+RAG_PATTERNS_CORPUS_ID = "projects/haroonc-exp/locations/us-east4/ragCorpora/5476377146882523136"
+RAG_KNOWLEDGE_CORPUS_ID = "projects/haroonc-exp/locations/us-east4/ragCorpora/2017612633061982208"
 TARGET_FOLDER_PATH = os.environ.get('WORKING_DIR', '/data')
 vertexai.init(project="haroonc-exp", location="us-east4")
 # git_mcp = MCPToolset(
@@ -29,6 +29,7 @@ vertexai.init(project="haroonc-exp", location="us-east4")
 #                                 "@cyanheads/git-mcp-server",
 #                             ],
 #                         ),
+#                         timeout = 15.0,
 #                     ),
 #                 )
 
@@ -48,6 +49,7 @@ filesystem_mcp = MCPToolset(
                                 os.path.abspath(TARGET_FOLDER_PATH),
                             ],
                         ),
+                        timeout = 15.0,
                     ),
                 )
 
@@ -86,14 +88,17 @@ def query_knowledge(query: str):
         rag_resources=[
             rag.RagResource(
                 rag_corpus=RAG_KNOWLEDGE_CORPUS_ID,
-                # Optional: supply IDs from `rag.list_files()`.
-                # rag_file_ids=["rag-file-1", "rag-file-2", ...],
             )
         ],
         text=query,
         rag_retrieval_config=rag_retrieval_config,
     )
-    return response.text
+    knowledge = ""
+
+    for i, context in enumerate(response.contexts.contexts):
+        knowledge += f'knowledge {i}: {context.text} \n\n'
+
+    return knowledge
 
 def search_common_cicd_patterns(keywords: str):
     """Searches for common CI/CD patterns and best practices.
@@ -105,21 +110,24 @@ def search_common_cicd_patterns(keywords: str):
         The response from the retrieval query.
     """
     rag_retrieval_config = rag.RagRetrievalConfig(
-        top_k=3,  # Optional
+        top_k=2,  # Optional
         filter=rag.Filter(vector_distance_threshold=0.5),  # Optional
     )
     response = rag.retrieval_query(
         rag_resources=[
             rag.RagResource(
                 rag_corpus=RAG_PATTERNS_CORPUS_ID,
-                # Optional: supply IDs from `rag.list_files()`.
-                # rag_file_ids=["rag-file-1", "rag-file-2", ...],
             )
         ],
         text=keywords,
         rag_retrieval_config=rag_retrieval_config,
     )
-    return response.text
+    patterns = ""
+
+    for i, context in enumerate(response.contexts.contexts):
+        patterns += f'Pattern {i}: {context.text} \n\n'
+
+    return patterns
 
 
 implementation_agent = LlmAgent(
@@ -134,7 +142,7 @@ implementation_agent = LlmAgent(
     ),
     instruction=PROMPTS[IMPLEMNETATION_PROMPT],
     planner=PlanReActPlanner(),
-    tools=[filesystem_mcp, gcp_devops_mcp, transfer_to_root_agent]
+    tools=[filesystem_mcp, gcp_devops_mcp, transfer_to_root_agent, query_knowledge]
 )
 
 design_agent = LlmAgent(
@@ -149,33 +157,33 @@ design_agent = LlmAgent(
     ),
     instruction=PROMPTS[DESIGN_PROMPT],
     planner=PlanReActPlanner(),
-    tools=[filesystem_mcp, transfer_to_implementation_agent, transfer_to_root_agent, search_common_cicd_patterns, query_knowledge],
+    tools=[filesystem_mcp, transfer_to_implementation_agent, transfer_to_root_agent, search_common_cicd_patterns],
 )
 
-# root_agent = Agent(
-#     name="cicd_agent",
-#     model=MODEL,
-#     planner=PlanReActPlanner(),
-#     description="""
-#     An orchestrator agent that resolves and stores GCP environment context before delegating the user's task
-#     to a specialized downstream tool.
-#     """,
-#     instruction= PROMPTS[ROOT_PROMPT],
-#     tools=[filesystem_mcp],
-#     sub_agents=[implementation_agent, design_agent]
-# )
-
 root_agent = Agent(
-    name="test_cicd_agent",
+    name="cicd_agent",
     model=MODEL,
     planner=PlanReActPlanner(),
     description="""
-    Answers user queries based on tools availbale.
+    An orchestrator agent that resolves and stores GCP environment context before delegating the user's task
+    to a specialized downstream tool.
     """,
-    instruction= "Answers user queries based on tools availbale.",
-    tools=[filesystem_mcp, search_common_cicd_patterns, query_knowledge]
-    # sub_agents=[implementation_agent, design_agent]
+    instruction= PROMPTS[ROOT_PROMPT],
+    tools=[filesystem_mcp],
+    sub_agents=[implementation_agent, design_agent]
 )
+
+# root_agent = Agent(
+#     name="test_cicd_agent",
+#     model=MODEL,
+#     planner=PlanReActPlanner(),
+#     description="""
+#     Answers user queries based on tools availbale.
+#     """,
+#     instruction= "Answers user queries based on tools availbale.",
+#     tools=[filesystem_mcp, search_common_cicd_patterns, query_knowledge]
+#     # sub_agents=[implementation_agent, design_agent]
+# )
 
 runner = Runner(
     agent=root_agent,

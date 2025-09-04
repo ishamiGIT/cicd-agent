@@ -63,7 +63,7 @@ def create_developer_connect_git_repository_link(project_id: str, location: str,
         location: The location of the connection.
         connection_id: The ID of the connection.
         repository_link_id: The ID of the repository link to create.
-        repo_uri: The URI of the repository to link.
+        repo_uri: The git URI of the repository to link. E.g. https://github.com/user/repo.git
     
     Returns:
         A dictionary containing a success message or an error message.
@@ -157,7 +157,7 @@ def find_git_repository_links_for_git_repo(project_id: str, location: str, repo_
     Args:
         project_id: The ID of the Google Cloud project.
         location: The location of the connections.
-        repo_uri: The URI of the repository to link.
+        repo_uri: The git URI of the repository to link. E.g. https://github.com/user/repo.git
 
     Returns:
         A dictionary containing a list of git repository links or an error message.
