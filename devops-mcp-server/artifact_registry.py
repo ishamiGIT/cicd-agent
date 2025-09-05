@@ -1,10 +1,15 @@
 from app import mcp
 import google.auth
 from google.cloud import artifactregistry_v1
+from typing import Dict, Any
 
+def _get_artifact_registry_service():
+    """Gets the Artifact Registry service client."""
+    credentials, _ = google.auth.default()
+    return artifactregistry_v1.ArtifactRegistryClient(credentials=credentials)
 
 @mcp.tool
-def create_artifact_registry_repository(project_id: str, location: str, repository_id: str, format: str):
+def create_artifact_registry_repository(project_id: str, location: str, repository_id: str, format: str) -> Dict[str, Any]:
     """Creates a new Artifact Registry repository.
 
     Args:
@@ -17,8 +22,7 @@ def create_artifact_registry_repository(project_id: str, location: str, reposito
         A dictionary containing a success message or an error message.
     """
     try:
-        credentials, project = google.auth.default()
-        client = artifactregistry_v1.ArtifactRegistryClient(credentials=credentials)
+        client = _get_artifact_registry_service()
 
         parent = f"projects/{project_id}/locations/{location}"
         repository = {

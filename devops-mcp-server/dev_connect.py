@@ -2,9 +2,25 @@ from app import mcp
 import google.auth
 from googleapiclient import discovery
 import time
+from typing import Dict, Any
+
+def _get_developer_connect_service():
+    """Gets the Developer Connect service client."""
+    credentials, _ = google.auth.default(
+        scopes=["https://www.googleapis.com/auth/cloud-platform"]
+    )
+    return discovery.build('developerconnect', 'v1', credentials=credentials)
+
+def _wait_for_operation(service, operation: Dict[str, Any]):
+    """Waits for a long-running operation to complete."""
+    operation_name = operation['name']
+    while 'done' not in operation or not operation['done']:
+        time.sleep(1)
+        operation = service.projects().locations().operations().get(name=operation_name).execute()
+    return operation
 
 @mcp.tool
-def create_developer_connect_connection(project_id: str, location: str, connection_id: str):
+def create_developer_connect_connection(project_id: str, location: str, connection_id: str) -> Dict[str, Any]:
     """Creates a new Developer Connect connection.
 
     Args:
@@ -16,10 +32,7 @@ def create_developer_connect_connection(project_id: str, location: str, connecti
         A dictionary containing a success message or an error message.
     """
     try:
-        credentials, project = google.auth.default(
-            scopes=["https://www.googleapis.com/auth/cloud-platform"]
-        )
-        service = discovery.build('developerconnect', 'v1', credentials=credentials)
+        service = _get_developer_connect_service()
 
         parent = f"projects/{project_id}/locations/{location}"
         body = {
@@ -34,11 +47,7 @@ def create_developer_connect_connection(project_id: str, location: str, connecti
             body=body
         )
         operation = create_request.execute()
-
-        operation_name = operation['name']
-        while 'done' not in operation or not operation['done']:
-            time.sleep(1)
-            operation = service.projects().locations().operations().get(name=operation_name).execute()
+        operation = _wait_for_operation(service, operation)
 
         if 'error' in operation:
             return {'error': operation['error']}
@@ -55,7 +64,7 @@ def create_developer_connect_connection(project_id: str, location: str, connecti
         return {"error": str(e)}
 
 @mcp.tool
-def create_developer_connect_git_repository_link(project_id: str, location: str, connection_id: str, repository_link_id: str, repo_uri: str):
+def create_developer_connect_git_repository_link(project_id: str, location: str, connection_id: str, repository_link_id: str, repo_uri: str) -> Dict[str, Any]:
     """Creates a new Developer Connect Git Repository Link.
 
     Args:
@@ -66,11 +75,10 @@ def create_developer_connect_git_repository_link(project_id: str, location: str,
         repo_uri: The git URI of the repository to link. E.g. https://github.com/user/repo.git
     
     Returns:
-        A dictionary containing a success message or an error message.
+        A dictionary containing the created repository link or an error message.
     """
     try:
-        credentials, _ = google.auth.default()
-        service = discovery.build('developerconnect', 'v1', credentials=credentials)
+        service = _get_developer_connect_service()
 
         parent = f'projects/{project_id}/locations/{location}/connections/{connection_id}'
         link_name = f'{parent}/gitRepositoryLinks/{repository_link_id}'
@@ -83,11 +91,7 @@ def create_developer_connect_git_repository_link(project_id: str, location: str,
             body=body
         )
         operation = create_request.execute()
-        
-        operation_name = operation['name']
-        while 'done' not in operation or not operation['done']:
-            time.sleep(1)
-            operation = service.projects().locations().operations().get(name=operation_name).execute()
+        operation = _wait_for_operation(service, operation)
 
         if 'error' in operation:
             return {'error': operation['error']}
@@ -102,7 +106,7 @@ def create_developer_connect_git_repository_link(project_id: str, location: str,
         return {"error": str(e)}
 
 @mcp.tool
-def list_developer_connect_connections(project_id: str, location: str):
+def list_developer_connect_connections(project_id: str, location: str) -> Dict[str, Any]:
     """Lists Developer Connect connections.
 
     Args:
@@ -113,8 +117,7 @@ def list_developer_connect_connections(project_id: str, location: str):
         A dictionary containing a list of connections or an error message.
     """
     try:
-        credentials, project = google.auth.default()
-        service = discovery.build('developerconnect', 'v1', credentials=credentials)
+        service = _get_developer_connect_service()
 
         parent = f"projects/{project_id}/locations/{location}"
         request = service.projects().locations().connections().list(parent=parent)
@@ -126,7 +129,7 @@ def list_developer_connect_connections(project_id: str, location: str):
         return {"error": str(e)}
 
 @mcp.tool
-def get_developer_connect_connection(project_id: str, location: str, connection_id: str):
+def get_developer_connect_connection(project_id: str, location: str, connection_id: str) -> Dict[str, Any]:
     """Gets a Developer Connect connection.
 
     Args:
@@ -138,8 +141,7 @@ def get_developer_connect_connection(project_id: str, location: str, connection_
         A dictionary containing the connection or an error message.
     """
     try:
-        credentials, project = google.auth.default()
-        service = discovery.build('developerconnect', 'v1', credentials=credentials)
+        service = _get_developer_connect_service()
 
         name = f"projects/{project_id}/locations/{location}/connections/{connection_id}"
         request = service.projects().locations().connections().get(name=name)
@@ -151,7 +153,7 @@ def get_developer_connect_connection(project_id: str, location: str, connection_
         return {"error": str(e)}
 
 @mcp.tool
-def find_git_repository_links_for_git_repo(project_id: str, location: str, repo_uri: str):
+def find_git_repository_links_for_git_repo(project_id: str, location: str, repo_uri: str) -> Dict[str, Any]:
     """Finds already configured Developer Connect Git Repository Links for a particular git repository.
 
     Args:
@@ -163,8 +165,7 @@ def find_git_repository_links_for_git_repo(project_id: str, location: str, repo_
         A dictionary containing a list of git repository links or an error message.
     """
     try:
-        credentials, project = google.auth.default()
-        service = discovery.build('developerconnect', 'v1', credentials=credentials)
+        service = _get_developer_connect_service()
 
         parent = f"projects/{project_id}/locations/{location}/connections/-"
         request = service.projects().locations().connections().gitRepositoryLinks().list(parent=parent, filter=f'clone_uri="{repo_uri}"')
