@@ -2,50 +2,36 @@
 
 This server provides a local interface to interact with Google Cloud services through the Gemini CLI.
 
-## Embedded Installation
+## Prerequisites
 
-### Prerequisites
-
-*   **Python 3.10 or higher:** Ensure you have a compatible Python version installed.
 *   **Google Cloud SDK:** Install the [Google Cloud SDK](https://cloud.google.com/sdk/docs/install) and authenticate with your Google account.
-
-### Setup
-
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/GoogleCloudPlatform/gemini-cli.git
-    cd gemini-cli/mcp/devops-mcp-server
-    ```
-
-2.  **Log in to your Google Cloud account:**
-    ```bash
-    gcloud auth login
-    ```
-
-3.  **Set up Application Default Credentials (ADC):**
+*   **Set up Application Default Credentials (ADC):**
     ```bash
     gcloud auth application-default login
     ```
 
-### Running the Server
+## Running the Server
 
-To run the MCP server, use the `start.sh` script with the `--transport stdio` argument. This will start the server and make it available for the Gemini CLI to use.
+There are two ways to run the MCP server:
+
+### 1. Using stdio
+
+This method is recommended for local development and testing.
+
+**Running the Server:**
+
+To run the MCP server, use the `start.sh` script with the `--transport stdio` argument.
 
 ```bash
 ./start.sh --transport stdio
 ```
 
-The script will automatically create a Python virtual environment, install the required dependencies from `requirements.txt`, and then start the server.
+**Gemini CLI Configuration:**
 
-### Gemini CLI Configuration
-
-To use this MCP server with the Gemini CLI, you need to update your Gemini CLI `settings.json` configuration file. Add a new entry under the `"mcpServers"` section to point to your local server.
-
-**Example `settings.json` configuration:**
+Update your Gemini CLI `settings.json` to include the following:
 
 ```json
 {
-  ...
   "mcpServers": {
     "devops": {
       "command": "/path/to/your/devops-mcp-server/start.sh",
@@ -55,65 +41,38 @@ To use this MCP server with the Gemini CLI, you need to update your Gemini CLI `
       ]
     }
   }
-  ...
 }
 ```
 
-Replace `/path/to/your/devops-mcp-server/start.sh` with the absolute path to the `start.sh` script in your cloned repository.
+Replace `/path/to/your/devops-mcp-server/start.sh` with the absolute path to the `start.sh` script.
 
-Once configured, you can invoke the server from the Gemini CLI using the `devops` prefix, for example:
+### 2. Using streamable HTTP and Docker
 
-```
-gemini devops:cloud_run.services.list
-```
+This method is recommended for a more robust setup.
 
-## Running with Docker
-
-This server is designed to be run as a Docker container. Here's how you can build and run it:
-
-### 1. Build the Docker Image
-
-From the root directory of the project, run the following command to build the Docker image:
+**Build the Docker container:**
 
 ```bash
-docker build -t devops-mcp-server .
+docker build -t devops-mcp-server . 
 ```
 
-### 2. Run the Docker Container
-
-### Using Your Local Google Cloud Credentials
-
-To allow the server to use your local Google Cloud Application Default Credentials (ADC), you need to mount your local `gcloud` configuration directory into the container. This will allow the server to create GCP projects on your behalf.
-```bash
-gcloud auth application-default login
-```
-
-### Run
-
-Once the image is built, you can run it as a container. The server will be available on port 8000.
-
+**Run the Docker container:**
 ```bash
 docker run -v ~/.config/gcloud:/root/.config/gcloud -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json -p 9000:9000 devops-mcp-server
 ```
-**Security Warning:** By mounting this directory, you are giving the container access to your `gcloud` credentials. You should only do this with Docker images that you trust.
 
-**Note for Windows users:** The path to the `gcloud` configuration directory is `%APPDATA%\gcloud`.
+**Gemini CLI Configuration:**
 
-### Gemini CLI Configuration
+Note that the server needs to be running in this case for Gemini CLI to connect to it.
 
-To use this MCP server with the Gemini CLI, you need to update your Gemini CLI `settings.json` configuration file. Add a new entry under the `"mcpServers"` section to point to your local server.
-
-**Example `settings.json` configuration:**
+Update your Gemini CLI `settings.json` to include the following:
 
 ```json
 {
-  ...
   "mcpServers": {
     "devops": {
-      "httpUrl": "https://localhost:9000/mcp/",
-      "timeout": 5000
+      "httpUrl": "http://localhost:9000/mcp"
     }
   }
-  ...
 }
 ```
