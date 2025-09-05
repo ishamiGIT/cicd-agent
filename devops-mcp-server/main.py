@@ -27,7 +27,7 @@ def initialize_services():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="GCP DevOps MCP Server.")
-    parser.add_argument("--transport", type=str, default="http", help="MCP Transport ('http' or 'stdout')")
+    parser.add_argument("--transport", type=str, default="stdio", help="MCP Transport ('http' or 'stdio')")
     parser.add_argument("--host", type=str, default="0.0.0.0", help="MCP Server Host")
     parser.add_argument("--port", type=int, default=9000, help="MCP Server Port")
     parser.add_argument("--path", type=str, default="/mcp", help="MCP Path")
