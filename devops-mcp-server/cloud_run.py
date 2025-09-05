@@ -1,10 +1,17 @@
 from app import mcp
 import google.auth
 from google.cloud import run_v2
+from typing import Dict, Any
 
+def _get_cloud_run_service():
+    """Gets the Cloud Run service client."""
+    credentials, _ = google.auth.default(
+        scopes=["https://www.googleapis.com/auth/cloud-platform"]
+    )
+    return run_v2.ServicesClient(credentials=credentials)
 
 @mcp.tool
-def create_cloud_run_service(project_id: str, location: str, service_name: str, image_url: str, port: int):
+def create_cloud_run_service(project_id: str, location: str, service_name: str, image_url: str, port: int) -> Dict[str, Any]:
     """Creates a new Cloud Run service.
 
     Args:
@@ -13,10 +20,12 @@ def create_cloud_run_service(project_id: str, location: str, service_name: str, 
         service_name: The name of the service to create.
         image_url: The URL of the container image to deploy.
         port: The port that the container listens on.
+
+    Returns:
+        A dictionary containing the created service or an error message.
     """
     try:
-        credentials, project = google.auth.default()
-        client = run_v2.ServicesClient(credentials=credentials)
+        client = _get_cloud_run_service()
 
         parent = f"projects/{project_id}/locations/{location}"
         service = {
@@ -46,7 +55,7 @@ def create_cloud_run_service(project_id: str, location: str, service_name: str, 
 
 
 @mcp.tool
-def create_cloud_run_revision(project_id: str, location: str, service_name: str, image_url: str, revision_name: str = None):
+def create_cloud_run_revision(project_id: str, location: str, service_name: str, image_url: str, revision_name: str = None) -> Dict[str, Any]:
     """Creates a new Cloud Run revision for a service with a new Docker image.
 
     Args:
@@ -55,12 +64,12 @@ def create_cloud_run_revision(project_id: str, location: str, service_name: str,
         service_name: The name of the service to update.
         image_url: The URL of the new container image to deploy.
         revision_name: The name of the new revision. If not specified, a name will be generated automatically.
+
+    Returns:
+        A dictionary containing the created revision or an error message.
     """
     try:
-        credentials, project = google.auth.default(
-            scopes=["https://www.googleapis.com/auth/cloud-platform"]
-        )
-        client = run_v2.ServicesClient(credentials=credentials)
+        client = _get_cloud_run_service()
 
         service_path = client.service_path(project_id, location, service_name)
 

@@ -1,9 +1,15 @@
 from app import mcp
 import google.auth
 from google.cloud import deploy_v1
+from typing import Dict, Any, List
+
+def _get_cloud_deploy_service():
+    """Gets the Cloud Deploy service client."""
+    credentials, _ = google.auth.default()
+    return deploy_v1.CloudDeployClient(credentials=credentials)
 
 @mcp.tool
-def create_delivery_pipeline(project_id: str, location: str, delivery_pipeline_id: str, description: str = ""):
+def create_delivery_pipeline(project_id: str, location: str, delivery_pipeline_id: str, description: str = "") -> Dict[str, Any]:
     """Creates a new Cloud Deploy delivery pipeline.
 
     Args:
@@ -16,8 +22,7 @@ def create_delivery_pipeline(project_id: str, location: str, delivery_pipeline_i
         A dictionary containing a success message or an error message.
     """
     try:
-        credentials, project = google.auth.default()
-        client = deploy_v1.CloudDeployClient(credentials=credentials)
+        client = _get_cloud_deploy_service()
 
         parent = f"projects/{project_id}/locations/{location}"
         delivery_pipeline = {
@@ -38,7 +43,7 @@ def create_delivery_pipeline(project_id: str, location: str, delivery_pipeline_i
         return {"error": str(e)}
 
 @mcp.tool
-def create_gke_target(project_id: str, location: str, target_id: str, gke_cluster: str, description: str = ""):
+def create_gke_target(project_id: str, location: str, target_id: str, gke_cluster: str, description: str = "") -> Dict[str, Any]:
     """Creates a new Cloud Deploy GKE target.
 
     Args:
@@ -52,8 +57,7 @@ def create_gke_target(project_id: str, location: str, target_id: str, gke_cluste
         A dictionary containing a success message or an error message.
     """
     try:
-        credentials, project = google.auth.default()
-        client = deploy_v1.CloudDeployClient(credentials=credentials)
+        client = _get_cloud_deploy_service()
 
         parent = f"projects/{project_id}/locations/{location}"
         target = {
@@ -74,7 +78,7 @@ def create_gke_target(project_id: str, location: str, target_id: str, gke_cluste
         return {"error": str(e)}
 
 @mcp.tool
-def create_cloud_run_target(project_id: str, location: str, target_id: str, description: str = ""):
+def create_cloud_run_target(project_id: str, location: str, target_id: str, description: str = "") -> Dict[str, Any]:
     """Creates a new Cloud Deploy Cloud Run target.
 
     Args:
@@ -87,8 +91,7 @@ def create_cloud_run_target(project_id: str, location: str, target_id: str, desc
         A dictionary containing a success message or an error message.
     """
     try:
-        credentials, project = google.auth.default()
-        client = deploy_v1.CloudDeployClient(credentials=credentials)
+        client = _get_cloud_deploy_service()
 
         parent = f"projects/{project_id}/locations/{location}"
         target = {
@@ -109,7 +112,7 @@ def create_cloud_run_target(project_id: str, location: str, target_id: str, desc
         return {"error": str(e)}
 
 @mcp.tool
-def create_rollout(project_id: str, location: str, delivery_pipeline_id: str, release_id: str, rollout_id: str, target_id: str):
+def create_rollout(project_id: str, location: str, delivery_pipeline_id: str, release_id: str, rollout_id: str, target_id: str) -> Dict[str, Any]:
     """Creates a new Cloud Deploy rollout.
 
     Args:
@@ -124,8 +127,7 @@ def create_rollout(project_id: str, location: str, delivery_pipeline_id: str, re
         A dictionary containing a success message or an error message.
     """
     try:
-        credentials, project = google.auth.default()
-        client = deploy_v1.CloudDeployClient(credentials=credentials)
+        client = _get_cloud_deploy_service()
 
         parent = f"projects/{project_id}/locations/{location}/deliveryPipelines/{delivery_pipeline_id}/releases/{release_id}"
         rollout = {
@@ -143,7 +145,7 @@ def create_rollout(project_id: str, location: str, delivery_pipeline_id: str, re
         return {"error": str(e)}
 
 @mcp.tool
-def list_delivery_pipelines(project_id: str, location: str):
+def list_delivery_pipelines(project_id: str, location: str) -> Dict[str, Any]:
     """Lists all Cloud Deploy delivery pipelines.
 
     Args:
@@ -154,8 +156,7 @@ def list_delivery_pipelines(project_id: str, location: str):
         A dictionary containing a list of delivery pipelines or an error message.
     """
     try:
-        credentials, project = google.auth.default()
-        client = deploy_v1.CloudDeployClient(credentials=credentials)
+        client = _get_cloud_deploy_service()
 
         parent = f"projects/{project_id}/locations/{location}"
 
@@ -171,7 +172,7 @@ def list_delivery_pipelines(project_id: str, location: str):
         return {"error": str(e)}
 
 @mcp.tool
-def list_targets(project_id: str, location: str):
+def list_targets(project_id: str, location: str) -> Dict[str, Any]:
     """Lists all Cloud Deploy targets.
 
     Args:
@@ -182,8 +183,7 @@ def list_targets(project_id: str, location: str):
         A dictionary containing a list of targets or an error message.
     """
     try:
-        credentials, project = google.auth.default()
-        client = deploy_v1.CloudDeployClient(credentials=credentials)
+        client = _get_cloud_deploy_service()
 
         parent = f"projects/{project_id}/locations/{location}"
 
@@ -199,7 +199,7 @@ def list_targets(project_id: str, location: str):
         return {"error": str(e)}
 
 @mcp.tool
-def list_releases(project_id: str, location: str, delivery_pipeline_id: str):
+def list_releases(project_id: str, location: str, delivery_pipeline_id: str) -> Dict[str, Any]:
     """Lists all Cloud Deploy releases for a given delivery pipeline.
 
     Args:
@@ -211,8 +211,7 @@ def list_releases(project_id: str, location: str, delivery_pipeline_id: str):
         A dictionary containing a list of releases or an error message.
     """
     try:
-        credentials, project = google.auth.default()
-        client = deploy_v1.CloudDeployClient(credentials=credentials)
+        client = _get_cloud_deploy_service()
 
         parent = f"projects/{project_id}/locations/{location}/deliveryPipelines/{delivery_pipeline_id}"
 
@@ -228,7 +227,7 @@ def list_releases(project_id: str, location: str, delivery_pipeline_id: str):
         return {"error": str(e)}
 
 @mcp.tool
-def list_rollouts(project_id: str, location: str, delivery_pipeline_id: str, release_id: str):
+def list_rollouts(project_id: str, location: str, delivery_pipeline_id: str, release_id: str) -> Dict[str, Any]:
     """Lists all Cloud Deploy rollouts for a given release.
 
     Args:
@@ -241,8 +240,7 @@ def list_rollouts(project_id: str, location: str, delivery_pipeline_id: str, rel
         A dictionary containing a list of rollouts or an error message.
     """
     try:
-        credentials, project = google.auth.default()
-        client = deploy_v1.CloudDeployClient(credentials=credentials)
+        client = _get_cloud_deploy_service()
 
         parent = f"projects/{project_id}/locations/{location}/deliveryPipelines/{delivery_pipeline_id}/releases/{release_id}"
 
@@ -258,7 +256,7 @@ def list_rollouts(project_id: str, location: str, delivery_pipeline_id: str, rel
         return {"error": str(e)}
 
 @mcp.tool
-def promote_release(project_id: str, location: str, delivery_pipeline_id: str, release_id: str, to_target: str):
+def promote_release(project_id: str, location: str, delivery_pipeline_id: str, release_id: str, to_target: str) -> Dict[str, Any]:
     """Promotes a Cloud Deploy release to a specified target.
 
     Args:
@@ -272,8 +270,7 @@ def promote_release(project_id: str, location: str, delivery_pipeline_id: str, r
         A dictionary containing a success message or an error message.
     """
     try:
-        credentials, project = google.auth.default()
-        client = deploy_v1.CloudDeployClient(credentials=credentials)
+        client = _get_cloud_deploy_service()
 
         parent = f"projects/{project_id}/locations/{location}/deliveryPipelines/{delivery_pipeline_id}/releases/{release_id}"
         rollout = {

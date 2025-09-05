@@ -1,22 +1,36 @@
 import google.auth
 from googleapiclient import discovery
 from app import mcp
+from typing import Dict, Any, List
 
+def _get_iam_service():
+    """Gets the IAM service client."""
+    credentials, _ = google.auth.default(
+        scopes=["https://www.googleapis.com/auth/cloud-platform"]
+    )
+    return discovery.build("iam", "v1", credentials=credentials)
+
+def _get_cloud_resource_manager_service():
+    """Gets the Cloud Resource Manager service client."""
+    credentials, _ = google.auth.default(
+        scopes=["https://www.googleapis.com/auth/cloud-platform"]
+    )
+    return discovery.build("cloudresourcemanager", "v1", credentials=credentials)
 
 @mcp.tool
-def create_service_account(project_id: str, display_name: str, account_id: str):
+def create_service_account(project_id: str, display_name: str, account_id: str) -> Dict[str, str]:
     """Creates a new Google Cloud Platform service account.
 
     Args:
         project_id: The ID of the GCP project.
         display_name: The display name for the service account.
         account_id: The ID for the service account (lowercase, alphanumeric, hyphen allowed).
+    
+    Returns:
+        A dictionary containing the email of the created service account or an error message.
     """
     try:
-        credentials, project = google.auth.default(
-            scopes=["https://www.googleapis.com/auth/cloud-platform"]
-        )
-        service = discovery.build("iam", "v1", credentials=credentials)
+        service = _get_iam_service()
 
         project_path = f"projects/{project_id}"
         service_account_body = {
@@ -39,7 +53,7 @@ def create_service_account(project_id: str, display_name: str, account_id: str):
 
 
 @mcp.tool
-def add_iam_role_binding(resource_type: str, resource_id: str, role: str, member: str):
+def add_iam_role_binding(resource_type: str, resource_id: str, role: str, member: str) -> Dict[str, str]:
     """Adds an IAM role binding to a Google Cloud Platform resource.
 
     Args:
@@ -47,12 +61,12 @@ def add_iam_role_binding(resource_type: str, resource_id: str, role: str, member
         resource_id: The ID of the resource. my-project, 1234320592234
         role: The role to bind (e.g., 'roles/editor', 'roles/viewer').
         member: The member to bind the role to (e.g., 'user:example@example.com', 'serviceAccount:my-service-account@project-id.iam.gserviceaccount.com').
+
+    Returns:
+        A dictionary containing a success message or an error message.
     """
     try:
-        credentials, project = google.auth.default(
-            scopes=["https://www.googleapis.com/auth/cloud-platform"]
-        )
-        service = discovery.build("cloudresourcemanager", "v1", credentials=credentials)
+        service = _get_cloud_resource_manager_service()
 
         # Get the current IAM policy
         policy_request = service.projects().getIamPolicy(
@@ -77,17 +91,17 @@ def add_iam_role_binding(resource_type: str, resource_id: str, role: str, member
 
 
 @mcp.tool
-def list_service_accounts(project_id: str):
+def list_service_accounts(project_id: str) -> List[Dict[str, Any]]:
     """Lists all service accounts in a project.
 
     Args:
         project_id: The ID of the Google Cloud project.
+
+    Returns:
+        A list of service accounts or a dictionary with an error message.
     """
     try:
-        credentials, project = google.auth.default(
-            scopes=["https://www.googleapis.com/auth/cloud-platform"]
-        )
-        service = discovery.build("iam", "v1", credentials=credentials)
+        service = _get_iam_service()
 
         parent = f"projects/{project_id}"
         request = service.projects().serviceAccounts().list(name=parent)
@@ -100,18 +114,18 @@ def list_service_accounts(project_id: str):
 
 
 @mcp.tool
-def get_iam_role_binding(project_id: str, service_account_email: str):
+def get_iam_role_binding(project_id: str, service_account_email: str) -> Dict[str, Any]:
     """Gets the IAM role bindings for a service account.
 
     Args:
         project_id: The ID of the GCP project.
         service_account_email: The email of the service account.
+
+    Returns:
+        A dictionary containing the roles of the service account or an error message.
     """
     try:
-        credentials, project = google.auth.default(
-            scopes=["https://www.googleapis.com/auth/cloud-platform"]
-        )
-        service = discovery.build("cloudresourcemanager", "v1", credentials=credentials)
+        service = _get_cloud_resource_manager_service()
 
         # Get the current IAM policy
         policy_request = service.projects().getIamPolicy(
