@@ -1,8 +1,8 @@
-# MCP Server
+# MCP Server to manage CI/CD pipelines
 
-This server provides a local interface to interact with Google Cloud services through the Gemini CLI.
+This MCP server provides tools to generate and use CI/CD pipelines to deploy an application to GCP.
 
-## Embedded Installation
+## Running locally
 
 ### Prerequisites
 
@@ -13,8 +13,8 @@ This server provides a local interface to interact with Google Cloud services th
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/GoogleCloudPlatform/gemini-cli.git
-    cd gemini-cli/mcp/devops-mcp-server
+    git clone https://github.com/yeshwanth1993/cicd-agent.git
+    cd cicd-agent/devops-mcp-server
     ```
 
 2.  **Log in to your Google Cloud account:**
@@ -27,19 +27,20 @@ This server provides a local interface to interact with Google Cloud services th
     gcloud auth application-default login
     ```
 
-### Running the Server
+### Starting the Server
 
-To run the MCP server, use the `start.sh` script with the `--transport stdio` argument. This will start the server and make it available for the Gemini CLI to use.
+To run the MCP server as HTTP server, use the `start.sh` script with the `--transport http` argument. This will start the server and make it available for the Gemini CLI to use.
 
 ```bash
-./start.sh --transport stdio
+./start.sh --transport stdio --host 127.0.0.1 --port 9000
+
 ```
 
 The script will automatically create a Python virtual environment, install the required dependencies from `requirements.txt`, and then start the server.
 
 ### Gemini CLI Configuration
 
-To use this MCP server with the Gemini CLI, you need to update your Gemini CLI `settings.json` configuration file. Add a new entry under the `"mcpServers"` section to point to your local server.
+To use this MCP server with the Gemini CLI, you need to update your Gemini CLI `settings.json` [configuration file](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/tutorials.md#setting-up-a-model-context-protocol-mcp-server). Add a new entry under the `"mcpServers"` section to point to your local server.
 
 **Example `settings.json` configuration:**
 

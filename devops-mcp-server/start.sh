@@ -34,7 +34,8 @@ source "${VENV_DIR}/bin/activate" >&2
 # Install dependencies if requirements.txt exists
 if [[ -f "requirements.txt" ]]; then
   echo "Installing dependencies from requirements.txt..." >&2
-  if ! pip install --quiet -r requirements.txt >&2; then
+  pip install --quiet -r requirements.txt >&2
+  if [[ $? -ne 0 ]]; then
     echo "Failed to install dependencies. Exiting." >&2
     exit 1
   fi
