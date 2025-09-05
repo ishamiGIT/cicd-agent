@@ -48,7 +48,7 @@ To use this MCP server with the Gemini CLI, you need to update your Gemini CLI `
 {
   ...
   "mcpServers": {
-    "devops": {
+    "cicd": {
       "command": "/path/to/your/devops-mcp-server/start.sh",
       "args": [
         "--transport",
@@ -62,10 +62,10 @@ To use this MCP server with the Gemini CLI, you need to update your Gemini CLI `
 
 Replace `/path/to/your/devops-mcp-server/start.sh` with the absolute path to the `start.sh` script in your cloned repository.
 
-Once configured, you can invoke the server from the Gemini CLI using the `devops` prefix, for example:
+Once configured, you can invoke the server from the Gemini CLI using the `cicd` prefix, for example:
 
 ```
-gemini devops:cloud_run.services.list
+/cicd create a simple cicd pipeline for my app
 ```
 
 ## Running with Docker
