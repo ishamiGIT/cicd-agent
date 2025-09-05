@@ -2,72 +2,52 @@
 #
 # ---
 #
-# This script is used to start the MCP server.
+# Start the CICD MCP server in a python virtual environment
 #
 # ---
 
 # For better error handling
 set -euo pipefail
 
-# ---
-#
-# All stdout from this script is redirected to stderr.
-#
-# When MCP server is run in embedded mode as stdio transport,
-# MCP clients (e.g. Gemini-cli) expect stdout to be JSON-RPC.
-#
-# ---
-exec 1>&2
+# Define virtual environment directory name
+VENV_DIR=".venv"
 
-# ---
-#
-# The main function of this script that start the MCP server,
-# it will not be called when sourced.
-#
-# ---
+# Define Python application entry point
+#local -r 
+SERVER_APP="main.py"
 
-main() {
-  # Define virtual environment directory name
-  local -r venv_dir=".venv"
+# Change to the directory where the script is located
+MCP_SERVER_ROOT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+#echo "Changing to directory: ${MCP_SERVER_ROOT_DIR}" >&2
+cd "${MCP_SERVER_ROOT_DIR}"
 
-  # Define Python application entry point
-  local -r python_app="main.py"
-
-  # Check if the virtual environment exists
-  if [[ ! -d "${venv_dir}" ]]; then
-    echo "Virtual environment not found. Creating a new one..."
-    python3 -m venv "${venv_dir}"
-  fi
-
-  # Activate the virtual environment
-  echo "Activating virtual environment..."
-  source "${venv_dir}/bin/activate"
-
-  # Install dependencies if requirements.txt exists
-  if [[ -f "requirements.txt" ]]; then
-    echo "Installing dependencies from requirements.txt..."
-    pip install --quiet -r requirements.txt
-  else
-    echo "requirements.txt not found. Skipping dependency installation."
-  fi
-
-  # Launch the Python application
-  echo "Launching Python application: ${python_app}"
-  python "${python_app}" "$@"
-
-  # Deactivate the virtual environment upon script completion
-  # This line is optional and depends on whether you want the venv to remain active in the shell
-  # after the app exits. For simple startup scripts, it's often omitted.
-  # deactivate
-}
-
-# ---
-#
-# This script is designed to be sourced or executed.
-# It will not start MCP server when sourced.
-#
-# ---
-
-if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-  main "$@"
+# Check if the virtual environment exists
+if [[ ! -d "${VENV_DIR}" ]]; then
+  echo "Virtual environment not found. Creating a new one..." >&2
+  python3 -m venv "${VENV_DIR}"
 fi
+
+# Activate the virtual environment
+echo "Activating virtual environment..." >&2
+source "${VENV_DIR}/bin/activate" >&2
+
+# Install dependencies if requirements.txt exists
+if [[ -f "requirements.txt" ]]; then
+  echo "Installing dependencies from requirements.txt..." >&2
+  if ! pip install --quiet -r requirements.txt >&2; then
+    echo "Failed to install dependencies. Exiting." >&2
+    exit 1
+  fi
+else
+  echo "requirements.txt not found. Skipping dependency installation." >&2
+  exit 1
+fi
+
+# Launch the Python application
+echo "Launching CICD MCP Server: ${SERVER_APP}" >&2
+python "${SERVER_APP}" "$@"
+
+# Deactivate the virtual environment upon script completion
+# This line is optional and depends on whether you want the venv to remain active in the shell
+# after the app exits. For simple startup scripts, it's often omitted.
+deactivate
