@@ -1,28 +1,28 @@
 services:
   # This is your CI/CD Agent
-  cicd-agent:
-    build:
-      context: ./agent_root
-      dockerfile: Dockerfile
-    image: cicd-agent:latest
-    container_name: service-cicd-agent
-    ports:
-      - "8080:8080"
-    networks:
-      - my-app-network
-    volumes:
-      # Mounts your gcloud config from the host into the container
-      - ~/.config/gcloud:/root/.config/gcloud
-      # Mounts the current directory on the host to /data in the container
-      - './:/data'
-    environment:
-      # Sets the path for Google Application Credentials inside the container
-      - GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json
-      # Your existing environment variable
-      - DEVOPS_MCP_URL=http://devops-mcp:9000/mcp
-      - WORKING_DIR=/data
-    depends_on:
-      - devops-mcp
+  # cicd-agent:
+  #   build:
+  #     context: ./agent_root
+  #     dockerfile: Dockerfile
+  #   image: cicd-agent:latest
+  #   container_name: service-cicd-agent
+  #   ports:
+  #     - "8080:8080"
+  #   networks:
+  #     - my-app-network
+  #   volumes:
+  #     # Mounts your gcloud config from the host into the container
+  #     - ~/.config/gcloud:/root/.config/gcloud
+  #     # Mounts the current directory on the host to /data in the container
+  #     - './:/data'
+  #   environment:
+  #     # Sets the path for Google Application Credentials inside the container
+  #     - GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json
+  #     # Your existing environment variable
+  #     - DEVOPS_MCP_URL=http://devops-mcp:9000/mcp
+  #     - WORKING_DIR=/data
+  #   depends_on:
+  #     - devops-mcp
 
   # This is your Dev ops mcp server
   devops-mcp:
