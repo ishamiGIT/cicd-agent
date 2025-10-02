@@ -27,7 +27,7 @@ services:
   # This is your Dev ops mcp server
   devops-mcp:
     build:
-      context: ./devops-mcp-server
+      context: .
       dockerfile: Dockerfile
     image: devops-mcp:latest
     container_name: service-devops-mcp
@@ -39,6 +39,7 @@ services:
     volumes:
       # Mounts your gcloud config from the host into the container
       - ~/.config/gcloud:/root/.config/gcloud
+      - ~/cicd-agent/gcloud_dci:/app/gcloud_dci
     environment:
       # Sets the path for Google Application Credentials inside the container
       - GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json

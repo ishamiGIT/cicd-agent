@@ -24,8 +24,10 @@ def _run_gcloud_command(command_args: List[str]) -> Dict[str, Any] | List[Dict[s
     """
     full_command = [GCLOUD_EXECUTABLE] + command_args
     command_str = ' '.join(full_command)
-    logger.debug(f"Preparing to execute: {command_str}")
-    
+    logger.info(f"Current working directory: {os.getcwd()}")
+    logger.info(f"Preparing to execute: {command_str}")
+    logger.info(f"Prinitng full_command: {full_command}")
+
     try:
         result = subprocess.run(
             full_command,
@@ -33,7 +35,7 @@ def _run_gcloud_command(command_args: List[str]) -> Dict[str, Any] | List[Dict[s
             text=True,
             check=True,  # Raise CalledProcessError on non-zero exit code
             timeout=300,  # 5 minute timeout for safety
-            shell=True
+            shell=False
         )
         
         raw_json_output = result.stdout.strip()

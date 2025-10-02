@@ -10,6 +10,7 @@ import iam
 import cicd
 import rag
 import vertexai
+import dci_view_api
 
 
 import argparse
